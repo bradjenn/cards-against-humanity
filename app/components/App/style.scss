@@ -1,0 +1,39 @@
+:local(.main) {
+  display: flex;
+  flex: 1;
+
+  .stage {
+    flex: 1;
+  }
+
+  .chatbox {
+    border-left: 1px solid darken(#cecece, 10%);
+    flex: 0 0 320px;
+  }
+}
+
+:local(.form) {
+  background: black;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex: 1;
+
+  input {
+    background: none;
+    border: none;
+    border-bottom: 1px solid white;
+    color: white;
+    font-size: 40px;
+    line-height: 40px;
+    margin-top: -50px;
+    min-width: 530px;
+    padding: 15px 0;
+    outline: none;
+  }
+
+  input::-webkit-input-placeholder {
+    color: white !important;
+    font-weight: 200;
+  }
+}

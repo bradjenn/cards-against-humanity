@@ -1,0 +1,22 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background: white;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 200;
+  font-family: "Helvetica Neue";
+}
+
+#app {
+  display: flex;
+  flex: 1;
+}
