@@ -8,8 +8,8 @@
     "node": "7.2.0"
   },
   "scripts": {
-    "start": "node server",
-    "dev": "set NODE_ENV=development && node server"
+    "start": "NODE_ENV=development node server",
+    "build": "NODE_ENV=production webpack -p"
   },
   "author": "",
   "license": "ISC",

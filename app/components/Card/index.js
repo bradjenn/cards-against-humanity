@@ -3,7 +3,9 @@ import classnames from 'classnames';
 
 const Card = React.createClass({
   onClick() {
-    this.props.onClick(this.props.card.index);
+    if (this.props.onClick) {
+      this.props.onClick(this.props.card.index);
+    }
   },
 
   renderPickAmount() {

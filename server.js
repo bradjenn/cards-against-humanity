@@ -24,6 +24,10 @@ app.get('/:id', (req,res) => {
 
 app.use(express.static('public'));
 
+
+console.log(process.env.NODE_ENV);
+
+
 const userJoined = (socket, room) => {
   if (!(room in rooms)) {
     rooms[room] = {
@@ -163,16 +167,24 @@ const getWhiteCard = (whiteCardsUsed) => {
 
 const assignPlayerCards = (room, round) => {
   const whiteCards = data.whiteCards;
-  round.playerIds.forEach((playerId) => {
-    let playerCards = room.players[playerId].cards;
-    const playerCardIndexes = playerCards.map(c => c.index);
-    playerCardIndexes.forEach((cardIndex, index) => {
-      if (room.whiteCardsUsed.includes(cardIndex)) {
-        playerCards.splice(index, 1);
+
+  _.forEach(room.players, (player, playerId) => {
+    const playerCardIndexes = player.cards.map(c => c.index);
+
+    room.rounds.forEach((round) => {
+      if (round.playersChosenWhiteCards[playerId]) {
+        round.playersChosenWhiteCards[playerId].forEach((cardIndex) => {
+          const index = playerCardIndexes.indexOf(cardIndex);
+
+          if (index !== -1) {
+            room.players[playerId].cards.splice(index, 1);
+          }
+        });
       }
     });
 
-    while (playerCards.length < 10) {
+
+    while (player.cards.length < 10) {
       const cardIndex = getWhiteCard(room.whiteCardsUsed);
       room.whiteCardsUsed.push(cardIndex);
       room.players[playerId].cards.push({
@@ -187,7 +199,7 @@ const winnerChosen = (socket, { winnerId, roundId }) => {
   const room = rooms[socket.room];
   const roundIndex = room.rounds.indexOf(_.last(room.rounds));
   room.rounds[roundIndex].winnerId = winnerId;
-  assignPlayerCards(room, room.rounds[roundIndex]);
+  // assignPlayerCards(room, room.rounds[roundIndex]);
 
   room.messages.push({
     username: 'Server',

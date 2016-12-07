@@ -1,0 +1,27 @@
+:local(.leaderboard) {
+  margin-top: 20px;
+  padding: 0 5px;
+
+  h4 {
+    margin: 0 0 8px;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    font-weight: bold;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed #ccc;
+
+    span.player {
+      font-weight: 400;
+      margin-right: 10px;
+    }
+  }
+}

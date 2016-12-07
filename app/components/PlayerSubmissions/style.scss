@@ -1,0 +1,17 @@
+:local(.playerSubmissions) {
+  height: 100%;
+  width: 100%;
+
+  .submission {
+    display: flex;
+    float: left;
+    flex-direction: column;
+  }
+
+  button {
+    font-size: 14px;
+    margin: 0 5px;
+    padding: 10px 0 12px;
+    max-width: 220px;
+  }
+}

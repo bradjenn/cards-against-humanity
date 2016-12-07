@@ -1,0 +1,20 @@
+.header {
+  align-items: center;
+  display: flex;
+  padding: 0 20px;
+
+  p {
+    font-size: 22px;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .player {
+    margin-left: auto;
+  }
+
+  .judge-text {
+    flex: 1;
+    text-align: center;
+  }
+}
