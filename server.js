@@ -24,10 +24,6 @@ app.get('/:id', (req,res) => {
 
 app.use(express.static('public'));
 
-
-console.log(isProduction);
-
-
 const userJoined = (socket, room) => {
   if (!(room in rooms)) {
     rooms[room] = {
@@ -231,20 +227,20 @@ io.on('connection', (socket) => {
 });
 
 
-// if (!isProduction) {
-//   const webpack = require('webpack');
-//   const WebpackDevServer = require('webpack-dev-server');
-//   const webpackConfig = require('./webpack.config.js');
-//
-//   new WebpackDevServer(webpack(webpackConfig), {
-//     hot: false,
-//     noInfo: true,
-//     quiet: false,
-//     publicPath: '/build/',
-//     proxy: { '*': 'http://localhost:3000' },
-//     stats: { colors: true },
-//   }).listen(8080, 'localhost', err => {
-//     if (err) console.log(err);
-//     console.log('Webpack Dev Server listening at 8080');
-//   });
-// }
+if (!isProduction) {
+  const webpack = require('webpack');
+  const WebpackDevServer = require('webpack-dev-server');
+  const webpackConfig = require('./webpack.config.js');
+
+  new WebpackDevServer(webpack(webpackConfig), {
+    hot: false,
+    noInfo: true,
+    quiet: false,
+    publicPath: '/build/',
+    proxy: { '*': 'http://localhost:3000' },
+    stats: { colors: true },
+  }).listen(8080, 'localhost', err => {
+    if (err) console.log(err);
+    console.log('Webpack Dev Server listening at 8080');
+  });
+}
