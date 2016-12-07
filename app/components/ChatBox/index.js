@@ -4,20 +4,6 @@ import Messages from './Messages';
 import Form from './Form';
 
 const ChatBox = React.createClass({
-  getInitialState() {
-    return {
-      messages: []
-    };
-  },
-
-  componentWillMount() {
-    this.props.socket.on('updatechat', this.updateChat);
-  },
-
-  updateChat(messages) {
-    this.setState({ messages });
-  },
-
   onSubmit(message) {
     this.props.socket.emit('sendchat', message);
   },
@@ -25,7 +11,7 @@ const ChatBox = React.createClass({
   render() {
     return (
       <div className="chatbox">
-        <Messages messages={ this.state.messages } />
+        <Messages user={ this.props.user } messages={ this.props.room.messages } />
         <Form onSubmit={ this.onSubmit }/>
       </div>
     );

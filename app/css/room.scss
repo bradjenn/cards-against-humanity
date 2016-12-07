@@ -20,3 +20,25 @@ body {
   display: flex;
   flex: 1;
 }
+
+button {
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  font-weight: bold;
+  color: #232323;
+  outline: none;
+  border: 2px solid #232323;
+  background-color: white;
+  white-space: nowrap;
+  appearance: none;
+  box-shadow: inset 0 -4px 0 0 #232323;
+  border-radius: 7px;
+  font-size: 18px;
+  line-height: 18px;
+  padding: 14px 20px 18px;
+  transition: width 0.2s ease, color 0.3s ease, border-color 0.3s ease;
+}
+

@@ -1,21 +1,26 @@
 import React from 'react';
+import _ from 'lodash';
 import styles from './style.scss';
-import { ChatBox } from '../';
+import { ChatBox, Stage } from '../';
 
 const App = React.createClass({
+
   getInitialState() {
     return {
-      connected: localStorage.username ? true : false
+      room: {
+        players: {},
+        messages: []
+      }
     };
   },
 
   componentWillMount() {
     const { socket, data } = this.props;
     socket.on('connect', this.connect);
-    socket.on('user joined', this.connected);
+    socket.on('updateroom', this.updateRoom);
 
-    if (localStorage.username && localStorage.username.length) {
-      socket.emit('adduser', localStorage.username);
+    if (localStorage.user) {
+      socket.emit('adduser', JSON.parse(localStorage.user));
     }
   },
 
@@ -23,26 +28,41 @@ const App = React.createClass({
     localStorage.clear();
   },
 
-  connect() {
-    this.props.socket.emit('join', window.location.pathname.substring(1));
+  user() {
+    let user = localStorage.user ? JSON.parse(localStorage.user) : {
+      isConnected: false
+    };
+
+    return this.state.room.players[user.id] || user;
   },
 
-  connected() {
-    this.setState({ connected: true });
+  updateRoom(room) {
+    this.setState({ room: room });
+  },
+
+  connect() {
+    this.props.socket.emit('join', window.location.pathname.substring(1));
   },
 
   onSubmit(evt) {
     evt.preventDefault();
     const input = this.refs.input;
     const username = input.value;
-    localStorage.setItem('username', username);
-    this.props.socket.emit('adduser', username);
+
+    const user = {
+      id: _.uniqueId(`${ username }-${ Math.floor(Date.now() / 1000) }`),
+      username
+    };
+
+    localStorage.setItem('user', JSON.stringify(user));
+    this.props.socket.emit('adduser', user);
   },
 
   renderContent() {
-    const { socket } = this.props;
+    const { socket, data } = this.props;
+    const { room } = this.state;
 
-    if (!this.state.connected) {
+    if (!this.user().isConnected) {
       return (
         <form onSubmit={ this.onSubmit } className={ styles.form }>
           <input type="text" ref="input" placeholder="enter your username" />
@@ -52,8 +72,8 @@ const App = React.createClass({
 
     return (
       <main className={ styles.main }>
-        <div className="stage"></div>
-        <ChatBox socket={ socket } />
+        <Stage room={ room } user={ this.user() } socket={ socket } data={ data } />
+        <ChatBox user={ this.user() } socket={ socket } room={ room } />
       </main>
     );
   },

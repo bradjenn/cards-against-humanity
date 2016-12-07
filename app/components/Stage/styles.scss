@@ -1,0 +1,138 @@
+.stage {
+  display: flex;
+  position: relative;
+
+  .stage-content {
+    flex: 1;
+    overflow: hidden;
+  }
+}
+
+.stage-content {
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    align-items: center;
+    display: flex;
+    border-bottom: 1px solid darken(#cecece, 10%);
+    flex: 0 0 50px;
+    padding: 0 20px;
+  }
+
+  .round {
+    font-size: 22px;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  .body {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+  }
+
+  .col-left {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    max-width: 160px;
+
+    button {
+      font-size: initial;
+      padding: 10px 5px 14px;
+      margin: 20px 5px 0;
+    }
+  }
+
+  .col-right {
+    flex: 3;
+    overflow: hidden;
+    padding: 0 20px;
+
+    .card {
+      cursor: pointer;
+      float: left;
+      transition: all .1s ease;
+
+      &:hover {
+        transform: scale(1.02);
+      }
+    }
+  }
+}
+
+:local(.overlay) {
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  width: 160px;
+  height: 230px;
+
+  .inner {
+    display: flex;
+    border-radius: 10px;
+    flex: 1;
+    flex-direction: column;
+    margin: 5px;
+  }
+
+  p {
+    flex: 1;
+    font-weight: 400;
+    margin: 0;
+    padding: 15px;
+  }
+
+  span.underline {
+    border-bottom: 1px solid white;
+    display: inline-block;
+    width: 90px;
+    margin-right: 5px;
+  }
+
+  span.pick-number {
+    align-items: center;
+    justify-content: flex-end;
+    display: flex;
+    margin-top: auto;
+    flex: 0 0 50px;
+    text-align: right;
+    padding: 0 15px;
+  }
+
+  &.black {
+    color: white;
+
+    .inner {
+      background: black;
+    }
+  }
+
+  &.white {
+    color: black;
+
+    &.is-selected {
+      transform: scale(1.02);
+      .inner {
+        background: #eee;
+      }
+    }
+
+    .inner {
+      border: 1px solid black;
+    }
+  }
+}

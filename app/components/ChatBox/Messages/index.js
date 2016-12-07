@@ -4,9 +4,10 @@ import styles from './style.scss';
 
 const Messages = React.createClass({
   renderMessage(message, i) {
+    const { user } = this.props;
     const classNames = {
       message: true,
-      'is-users': localStorage.username && localStorage.username === message.username
+      'is-users': user && user.username === message.username
     };
     classNames[`${ message.type }-message`] = true;
 
