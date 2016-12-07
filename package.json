@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=development node server",
-    "build": "NODE_ENV=production webpack -p"
+    "build": "NODE_ENV=production webpack -p --config webpack.production.config.js"
   },
   "author": "",
   "license": "ISC",
@@ -47,7 +47,6 @@
     "sass-loader": "^4.0.2",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.3",
-    "webpack-dev-server": "^1.16.2",
-    "webpack-env": "^0.8.0"
+    "webpack-dev-server": "^1.16.2"
   }
 }

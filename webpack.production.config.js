@@ -13,18 +13,10 @@ const PATHS = {
 
 
 const config = {
-  devtool: 'eval',
+  devtool: 'source-map',
   entry: {
-    index: [
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/dev-server',
-      PATHS.app.index
-    ],
-    room: [
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/dev-server',
-      PATHS.app.room
-    ]
+    index: PATHS.app.index,
+    room: PATHS.app.room
   },
 
   output: {
