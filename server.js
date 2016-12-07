@@ -6,7 +6,7 @@ const express = require('express');
 const app = express();
 const server = require('http').Server(app); // eslint-disable-line new-cap
 const io = require('socket.io')(server);
-const { cleanString } = require('./utils');
+const { cleanString, urlifyText } = require('./utils');
 const data = require('./data.json');
 const rooms = {};
 
@@ -43,24 +43,33 @@ const userJoined = (socket, room) => {
 
 const userLeft = (socket) => {
   const room = rooms[socket.room];
-  if (socket.room in rooms) {
-    delete room.players[socket.username];
 
-    if (!Object.keys(room.players).length) {
-      console.log('DELETING ROOM: ' + socket.room);
-      delete rooms[socket.room];
-    }
+  if (socket.user) {
+    delete room.players[socket.user.id];
+    room.messages.push({
+      username: 'Server',
+      text: `${ socket.user.username } has left`,
+      type: 'server'
+    });
+  }
 
-    if (socket.user) {
-      room.messages.push({
-        username: 'Server',
-        text: `${ socket.user.username } has left`,
-        type: 'server'
-      });
+  if (!Object.keys(room.players).length) {
+    console.log('DELETING ROOM: ' + socket.room);
+    delete rooms[socket.room];
+  }
 
-      io.to(socket.room).emit('updateroom', room);
+  if (room && room.rounds.length) {
+    const currentRound = _.last(room.rounds);
+
+    if (currentRound.winnerId === null) {
+      const playerIndex = currentRound.playerIds.indexOf(socket.user.id);
+      currentRound.playerIds.splice(playerIndex, 1);
     }
   }
+
+
+  // TODO: PUT PLAYER WHITE CARDS BACK INTO POT
+  io.to(socket.room).emit('updateroom', room);
 }
 
 const addUser = (socket, user) => {
@@ -83,6 +92,12 @@ const addUser = (socket, user) => {
     };
   }
 
+  if (room.rounds.length) {
+    const currentRound = _.last(room.rounds);
+    assignPlayerCards(room, currentRound);
+    // assignJudge(room, currentRound);
+  }
+
   room.messages.push({
     username: 'Server',
     text: `${ user.username } has joined`,
@@ -97,7 +112,7 @@ const sendChat = (socket, data) => {
 
   room.messages.push({
     username: socket.user.username,
-    text: cleanString(data),
+    text: urlifyText(cleanString(data)),
     type: 'chat'
   });
 
@@ -119,8 +134,9 @@ const newRound = (socket) => {
     playersChosenWhiteCards: {}
   };
 
-  assignJudge(room, round);
   assignPlayerCards(room, round);
+  assignJudge(room, round);
+
   room.rounds.push(round);
 
   room.messages.push({
@@ -195,7 +211,6 @@ const winnerChosen = (socket, { winnerId, roundId }) => {
   const room = rooms[socket.room];
   const roundIndex = room.rounds.indexOf(_.last(room.rounds));
   room.rounds[roundIndex].winnerId = winnerId;
-  // assignPlayerCards(room, room.rounds[roundIndex]);
 
   room.messages.push({
     username: 'Server',

@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const autoprefixer = require('autoprefixer');
+const NODE_ENV = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : 'development';
 
 const PATHS = {
   app: {
@@ -13,7 +14,8 @@ const PATHS = {
 
 
 const config = {
-  devtool: 'source-map',
+  debug: false,
+  devtool: 'source-maps',
   entry: {
     index: PATHS.app.index,
     room: PATHS.app.room
@@ -22,7 +24,7 @@ const config = {
   output: {
     path: PATHS.build,
     filename: '[name].bundle.js',
-    publicPath: 'http://localhost:8080/build/',
+    publicPath: '',
   },
 
   module: {
@@ -52,7 +54,7 @@ const config = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
-        'NODE_ENV': JSON.stringify('production')
+        'NODE_ENV': JSON.stringify(NODE_ENV)
       }
     }),
     new webpack.optimize.DedupePlugin(),

@@ -14,7 +14,7 @@ const Messages = React.createClass({
     return (
       <div key={ i } className={ classnames(classNames) }>
         <span className="username">{ message.username }</span>
-        { message.text }
+        <p dangerouslySetInnerHTML={{ __html: message.text }} />
       </div>
     );
   },
