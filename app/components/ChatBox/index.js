@@ -11,7 +11,7 @@ const ChatBox = React.createClass({
   render() {
     return (
       <div className="chatbox">
-        <Messages user={ this.props.user } messages={ this.props.room.messages } />
+        <Messages user={ this.props.user } messages={ this.props.messages } />
         <Form onSubmit={ this.onSubmit }/>
       </div>
     );

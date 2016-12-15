@@ -9,7 +9,8 @@ const Stage = React.createClass({
   getInitialState() {
     return {
       selectedCards: [],
-      readyToSubmit: false
+      readyToSubmit: false,
+      renderNextRoundButton: false
     };
   },
 
@@ -18,10 +19,11 @@ const Stage = React.createClass({
   },
 
   selectCard(cardIndex) {
-    const currentRound = _.last(this.props.room.rounds);
+    const { currentRound } = this.props;
     if (!currentRound) { return; }
 
-    const blackCard = this.getBlackCard(currentRound);
+    const { blackCard } = currentRound;
+
     let selectedCards = this.state.selectedCards;
     const availablePosition = selectedCards.indexOf(null);
 
@@ -44,40 +46,60 @@ const Stage = React.createClass({
     });
   },
 
-  getBlackCard(round) {
-    return this.props.data.blackCards[round.blackCardIndex];
-  },
-
-  submitChoices(roundId) {
-    this.props.socket.emit('player-submission', {
-      playerId: this.props.user.id,
-      choices: this.state.selectedCards
-    });
+  submitChoices(round) {
+    this.props.socket.emit('player-submission',
+      round.gameId,
+      round.id,
+      this.props.user.id,
+      this.state.selectedCards
+    );
 
     this.setState({ selectedCards: [], readyToSubmit: false });
   },
 
   newRound() {
-    this.props.socket.emit('next-round');
+    this.setState({ renderNextRoundButton: false });
+    this.props.socket.emit('next-round', this.props.currentRound.gameId);
   },
 
   renderNextRoundButton(round) {
-    if (round.judgeId !== this.props.user.id) {
-      return null;
+    if (round.judgeId !== this.props.user.id) { return null; }
+
+    if (this.state.renderNextRoundButton) {
+      return (
+        <button type="button" onClick={ this.newRound }>
+          Next Round
+        </button>
+      );
     }
 
+    this.timeout = setTimeout(() => {
+      this.setState({ renderNextRoundButton: true });
+    }, 5000);
+
+    return null;
+  },
+
+  renderWinningCard(cardIndex, index) {
+    const { data } = this.props;
+    const card = {
+      index: cardIndex,
+      text: data.whiteCards[cardIndex]
+    };
+
     return (
-      <button type="button" onClick={ this.newRound }>
-        Next Round
-      </button>
+      <Card
+        key={ index }
+        colour="white"
+        card={ card } />
     );
   },
 
   renderContent() {
+    clearTimeout(this.timeout);
+    this.timeout = undefined;
     const { selectedCards, readyToSubmit } = this.state;
-    const { room, data, user } = this.props;
-    const currentRound = _.last(room.rounds);
-    const playerCount = _.keys(room.players).length;
+    const { currentRound, data, user, players, playerCount } = this.props;
 
     if (playerCount < 3) {
       return <p className={ style.overlay }>Waiting for more players to join...</p>;
@@ -91,17 +113,25 @@ const Stage = React.createClass({
       );
     }
 
-    if (currentRound.winnerId !== null) {
+    if (!_.isEmpty(currentRound) && currentRound.winnerId !== null) {
+      const blackCard = currentRound.blackCard;
       return (
         <div className={ style.overlay }>
-          <p>{ `${ room.players[currentRound.winnerId].username } is the winner!` }</p>
+          <p>{ `${ players[currentRound.winnerId].username } is the winner!` }</p>
+          <div className="winning-cards">
+            <div className="blackcard">
+              <Card colour="black" card={ currentRound.blackCard } />
+            </div>
+            <div className="whitecards">
+              { currentRound.chosenWhiteCards[currentRound.winnerId].map(this.renderWinningCard) }
+            </div>
+          </div>
           { this.renderNextRoundButton(currentRound) }
         </div>
       );
     }
 
-    if (_.isEmpty(currentRound.playersChosenWhiteCards) &&
-      currentRound.judgeId === user.id) {
+    if (_.isEmpty(currentRound.chosenWhiteCards) && currentRound.judgeId === user.id) {
       return (
         <div className={ style.overlay }>
           <p>You are the Card Czar <br /> Waiting for Submissions</p>
@@ -115,18 +145,14 @@ const Stage = React.createClass({
 
         <div className="body">
           <StageLeft { ...this.props }
-            round={ currentRound }
             selectedCards={ selectedCards }
             readyToSubmit={ readyToSubmit }
-            onSubmitChoices={ this.submitChoices }
-            blackCard={ this.getBlackCard(currentRound) } />
+            onSubmitChoices={ this.submitChoices } />
 
           <StageRight { ...this.props }
-            round={ currentRound }
             selectedCards={ selectedCards }
             readyToSubmit={ readyToSubmit }
-            onWhiteCardSelected={ this.selectCard }
-            blackCard={ this.getBlackCard(currentRound) } />
+            onWhiteCardSelected={ this.selectCard } />
         </div>
       </div>
     );

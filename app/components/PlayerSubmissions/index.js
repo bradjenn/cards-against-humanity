@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 import { Card, ChooseWinnerButton } from '../';
 
 import styles from './style.scss';
@@ -19,34 +20,44 @@ const PlayerSubmissions = React.createClass({
     );
   },
 
-  renderSubmission(playerId, index) {
-    const { round, user, room } = this.props;
-    if (!round.playersChosenWhiteCards[playerId]) { return null; }
-    const player = room.players[playerId];
+  renderSubmission(player, playerId, index) {
+    const { currentRound, user } = this.props;
+    if (!currentRound.chosenWhiteCards[player.id]) { return null; }
+
+    // const { data, currentRound, user } = this.props;
+    // if (!currentRound.chosenWhiteCards[player.id]) { return null; }
+    // let pickCount = 0;
+    // let blackCardText = currentRound.blackCard.text;
+    //
+    // currentRound.chosenWhiteCards[playerId].forEach((choice) => {
+    //   const whiteCard = data.whiteCards[choice];
+    //   blackCardText = blackCardText.replace('<span class=\'underline\'></span>', whiteCard);
+    // });
+    //
+    // const card = { text: blackCardText };
 
     return (
-      <div className="submission" key={ index }>
+      <div className="submission" key={ playerId }>
         <div className="chosen-cards">
-          { round.playersChosenWhiteCards[playerId].map(this.renderPlayerSubmission) }
+          { currentRound.chosenWhiteCards[playerId].map(this.renderPlayerSubmission) }
         </div>
         <ChooseWinnerButton
           { ...this.props }
           playerId={ playerId }
-          onClick={ this.chooseWinner }
-          round={ round } />
+          onClick={ this.chooseWinner } />
       </div>
     );
   },
 
   chooseWinner(playerId) {
-    const { round } = this.props;
-    this.props.socket.emit('winner-chosen', { winnerId: playerId, roundId: round.id });
+    const { currentGame, currentRound } = this.props;
+    this.props.socket.emit('winner-chosen', playerId, currentGame.id, currentRound.id);
   },
 
   render() {
     return (
       <div className={ styles.playerSubmissions }>
-        { this.props.round.playerIds.map(this.renderSubmission) }
+        { _.map(this.props.currentRound.players, this.renderSubmission) }
       </div>
     );
   }

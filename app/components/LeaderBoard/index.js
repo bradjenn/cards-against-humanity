@@ -3,12 +3,12 @@ import styles from './style.scss';
 
 const LeaderBoard = React.createClass({
   renderRow({ playerId, score }, i) {
-    const { room } = this.props;
+    const { players } = this.props;
 
     return (
       <li key={ i }>
         <span className="player">
-          { room.players[playerId].username }
+          { players[playerId].username }
         </span>
         { score }
       </li>
@@ -16,11 +16,12 @@ const LeaderBoard = React.createClass({
   },
 
   getResults() {
-    const { room } = this.props;
-    const scores = _.map(room.players, (player, playerId) => {
+    const { game, players } = this.props;
+
+    const scores = _.map(players, (player, playerId) => {
       return {
         playerId: playerId,
-        score: room.rounds.filter(r => r.winnerId === playerId).length
+        score: game.rounds.filter(r => r.winnerId === playerId).length
       };
     });
 

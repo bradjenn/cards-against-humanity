@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server",
     "dev": "NODE_ENV=development node server",
-    "build": "NODE_ENV=production webpack -p --config webpack.production.config.js"
+    "build": "NODE_ENV=production webpack -p --config webpack.production.config.js",
+    "test": "./node_modules/.bin/mocha --reporter spec"
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +34,7 @@
     "babel-polyfill": "^6.16.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",
+    "chai": "^3.5.0",
     "css-loader": "^0.26.0",
     "eslint": "^3.10.2",
     "eslint-loader": "^1.6.1",
@@ -40,7 +42,9 @@
     "estraverse-fb": "^1.3.1",
     "file-loader": "^0.9.0",
     "fs": "0.0.1-security",
+    "istanbul": "^0.4.5",
     "json-loader": "^0.5.4",
+    "mocha": "^3.2.0",
     "node-sass": "^3.13.0",
     "path": "^0.12.7",
     "postcss-loader": "^1.1.1",

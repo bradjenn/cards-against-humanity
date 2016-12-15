@@ -4,13 +4,16 @@ import styles from './style.scss';
 import { ChatBox, Stage } from '../';
 
 const App = React.createClass({
-
   getInitialState() {
     return {
-      room: {
-        players: {},
-        messages: []
-      }
+      name: '',
+      messages: [],
+      games: [],
+      players: {},
+      playerCount: 0,
+      whiteCardsUsed: [],
+      currentGame: {},
+      currentRound: null
     };
   },
 
@@ -20,7 +23,9 @@ const App = React.createClass({
     socket.on('updateroom', this.updateRoom);
 
     if (localStorage.user) {
-      socket.emit('adduser', JSON.parse(localStorage.user));
+      setTimeout(() => {
+        socket.emit('adduser', JSON.parse(localStorage.user));
+      }, 200);
     }
   },
 
@@ -29,15 +34,16 @@ const App = React.createClass({
   },
 
   user() {
-    let user = localStorage.user ? JSON.parse(localStorage.user) : {
-      isConnected: false
-    };
+    let user = localStorage.user ? JSON.parse(localStorage.user) : { id: null };
+    if (this.state.players[user.id]) {
+      return this.state.players[user.id];
+    }
 
-    return this.state.room.players[user.id] || user;
+    return {};
   },
 
-  updateRoom(room) {
-    this.setState({ room: room });
+  updateRoom(update) {
+    this.setState(update);
   },
 
   connect() {
@@ -60,9 +66,8 @@ const App = React.createClass({
 
   renderContent() {
     const { socket, data } = this.props;
-    const { room } = this.state;
 
-    if (!this.user().isConnected) {
+    if (this.state.players.length && _.isEmpty(this.user())) {
       return (
         <form onSubmit={ this.onSubmit } className={ styles.form }>
           <input type="text" ref="input" placeholder="enter your username" />
@@ -72,8 +77,8 @@ const App = React.createClass({
 
     return (
       <main className={ styles.main }>
-        <Stage room={ room } user={ this.user() } socket={ socket } data={ data } />
-        <ChatBox user={ this.user() } socket={ socket } room={ room } />
+        <Stage { ...this.state } user={ this.user() } socket={ socket } data={ data } />
+        <ChatBox user={ this.user() } socket={ socket } { ...this.state } />
       </main>
     );
   },

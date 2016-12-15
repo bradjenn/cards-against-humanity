@@ -16,13 +16,9 @@ const config = {
   devtool: 'eval',
   entry: {
     index: [
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/dev-server',
       PATHS.app.index
     ],
     room: [
-      'webpack-dev-server/client?http://localhost:8080',
-      'webpack/hot/dev-server',
       PATHS.app.room
     ]
   },
@@ -58,7 +54,6 @@ const config = {
   },
 
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
   ],
 };
