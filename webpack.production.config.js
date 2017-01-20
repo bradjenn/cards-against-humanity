@@ -47,7 +47,7 @@ const config = {
     ],
   },
 
-  postcss: () => {
+  postcss: function () {
     return [autoprefixer({ browsers: ['last 2 versions'] })];
   },
 
