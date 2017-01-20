@@ -10,6 +10,9 @@ Using [npm](https://www.npmjs.com/):
 
     $ npm install
     
+### Deployment
+Heroku is setup to deploy whenever the master branch has been updated.
+    
     
 ### Is this legal? Yes i think so.
 [Cards Against Humanity](https://cardsagainsthumanity.com/) is distributed under a [Creative Commons BY-NC-SA 2.0 license](https://creativecommons.org/licenses/by-nc-sa/2.0/).
