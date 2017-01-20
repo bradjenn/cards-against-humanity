@@ -10,9 +10,9 @@ Using [npm](https://www.npmjs.com/):
 
     $ npm install
 
-### Deployment
+### Making changes
 
-# Install the Heroku CLI
+#### Install the Heroku CLI
 
 Download and install the [Heroku
 CLI](https://devcenter.heroku.com/articles/heroku-cli).
@@ -21,7 +21,7 @@ If you haven't already, log in to your Heroku account and follow the prompts to 
 
     $ heroku login
 
-# Clone the repository
+#### Clone the repository
 
 Use Git to clone
 [cardsagainst-humanity's](https://github.com/bradjenn/cards-against-humanity) source code to your local machine.
@@ -29,7 +29,7 @@ Use Git to clone
     $ heroku git:clone -a cardsagainst-humanity
     $ cd cardsagainst-humanity
 
-# Deploy your changes
+#### Deploy your changes
 
 Make some changes to the code you just cloned and deploy them to Heroku using Git.
 
