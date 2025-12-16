@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: cah --default;
+  logs: true;
+}
+
+@plugin "daisyui/theme" {
+  name: "cah";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f3f3f3;
+  --color-base-300: #e5e5e5;
+  --color-base-content: #000000;
+
+  --color-primary: #000000;
+  --color-primary-content: #ffffff;
+
+  --color-secondary: #ffffff;
+  --color-secondary-content: #000000;
+
+  --color-accent: #000000;
+  --color-accent-content: #ffffff;
+
+  --color-neutral: #000000;
+  --color-neutral-content: #ffffff;
+
+  --color-info: #3b82f6;
+  --color-info-content: #ffffff;
+  --color-success: #22c55e;
+  --color-success-content: #ffffff;
+  --color-warning: #f59e0b;
+  --color-warning-content: #ffffff;
+  --color-error: #ef4444;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0rem;
+  --radius-field: 0rem;
+  --radius-box: 0rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+body {
+  @apply m-0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
