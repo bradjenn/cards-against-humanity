@@ -1,8 +1,7 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { JudgeReveal } from "@/components/round/JudgeReveal";
 import { JudgeView } from "@/components/round/JudgeView";
-import { JudgeWaiting } from "@/components/round/JudgeWaiting";
-import { useSupabase } from "@/components/SupabaseProvider";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import { advanceRound } from "@/server/round/advanceRound";
 import { revealNextSubmission } from "@/server/round/revealNextSubmission";
@@ -11,17 +10,19 @@ import type { GamePlayer, Round } from "@/types/db";
 export function JudgePanel({
   round,
   gameId,
+  gameSlug,
   players,
   submissionsCount,
   onPickWinner,
 }: {
   gameId: string;
+  gameSlug: string;
   round: Round;
   players: GamePlayer[];
   submissionsCount: number;
   onPickWinner: (playerId: string) => void;
 }) {
-  const supabase = useSupabase();
+  const navigate = useNavigate();
   const [revealing, setRevealing] = useState(false);
   const [advancing, setAdvancing] = useState(false);
 
@@ -40,8 +41,10 @@ export function JudgePanel({
   async function handleRevealNext() {
     setRevealing(true);
     try {
-      await revealNextSubmission(supabase, {
-        roundId: round.id,
+      await revealNextSubmission({
+        data: {
+          roundId: round.id,
+        },
       });
     } finally {
       setRevealing(false);
@@ -51,12 +54,20 @@ export function JudgePanel({
   async function handleAdvanceRound() {
     setAdvancing(true);
     try {
-      await advanceRound({
+      const result = await advanceRound({
         data: {
           gameId,
           roundId: round.id,
         },
       });
+
+      // If result is null, game has ended
+      if (result === null) {
+        navigate({
+          to: "/game/$slug/game-over",
+          params: { slug: gameSlug },
+        });
+      }
     } catch (err) {
       console.error("Failed to advance round", err);
     } finally {
@@ -65,7 +76,7 @@ export function JudgePanel({
   }
 
   if (!allSubmitted) {
-    return <JudgeWaiting />;
+    return null;
   }
 
   if (round.revealed_count < submissionsWithCards.length) {
@@ -77,9 +88,6 @@ export function JudgePanel({
         isRevealing={revealing}
       />
     );
-  }
-
-  if (round.winning_player_id) {
   }
 
   return (

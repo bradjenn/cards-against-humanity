@@ -1,17 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
-
 import { BlackCard } from "@/components/round/BlackCard";
+import { GameInfoPanel } from "@/components/round/GameInfoPanel";
 import { JudgePanel } from "@/components/round/JudgePanel";
 import { JudgeView } from "@/components/round/JudgeView";
+import { JudgeWaiting } from "@/components/round/JudgeWaiting";
 import { PlayerHand } from "@/components/round/PlayerHand";
-import { RoundMeta } from "@/components/round/RoundMeta";
+// import { RoundMeta } from "@/components/round/RoundMeta";
 import { SubmitCardsButton } from "@/components/round/SubmitCardsButton";
 import { useSupabase } from "@/components/SupabaseProvider";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
 import { usePlayerHand } from "@/hooks/usePlayerHand";
+import { usePlayers } from "@/hooks/usePlayers";
 import { useRoundRealtime } from "@/hooks/useRoundRealtime";
 import { useSubmittedCards } from "@/hooks/useSubmittedCards";
 import { useWinnerCelebration } from "@/hooks/useWinnerCelebration";
@@ -27,12 +30,13 @@ export const Route = createFileRoute("/game_/$slug/round_/$roundNumber")({
 function RoundViewPage() {
   const navigate = Route.useNavigate();
   const loaderData = Route.useLoaderData();
-  const { blackCard, players } = loaderData;
+  const { blackCard } = loaderData;
 
   const supabase = useSupabase();
   const [localPlayerId] = useLocalPlayerId();
 
   const game = useGameRealtime(loaderData.game);
+  const players = usePlayers(supabase, game.id);
   const { round, submissionsCount } = useRoundRealtime({
     initialRound: loaderData.round,
     initialSubmissionsCount: loaderData.submissionsCount,
@@ -41,9 +45,10 @@ function RoundViewPage() {
   const pick = blackCard.pick ?? 1;
 
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+  const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
 
   const isJudge = localPlayerId === round.judge_id;
-  const judge = players.find((p) => p.id === round.judge_id) ?? null;
+  // const judge = players.find((p) => p.id === round.judge_id) ?? null;
 
   /* ---------------------------
    * Player submission state
@@ -76,6 +81,9 @@ function RoundViewPage() {
     localPlayerId != null && round.winning_player_id === localPlayerId;
   const { showWinnerBanner } = useWinnerCelebration({ isWinner });
 
+  const expectedSubmitters = Math.max(players.length - 1, 0);
+  const allSubmitted = submissionsCount >= expectedSubmitters;
+
   useEffect(() => {
     if (!round.id) return;
 
@@ -83,6 +91,17 @@ function RoundViewPage() {
   }, [round.id]);
 
   useEffect(() => {
+    // Redirect to game over if game has finished
+    if (game.status === "FINISHED") {
+      navigate({
+        to: "/game/$slug/game-over",
+        params: { slug: game.slug },
+        replace: true,
+      });
+      return;
+    }
+
+    // Redirect to current round if we're viewing an old round
     if (game.round_number > round.round_number) {
       navigate({
         to: "/game/$slug/round/$roundNumber",
@@ -93,7 +112,7 @@ function RoundViewPage() {
         replace: true,
       });
     }
-  }, [game.round_number, round.round_number, game.slug, navigate]);
+  }, [game.status, game.round_number, round.round_number, game.slug, navigate]);
 
   function toggleCard(cardId: string) {
     setSelectedCardIds((prev) => {
@@ -145,7 +164,15 @@ function RoundViewPage() {
 
   return (
     <div className="">
-      <div className="sticky flex flex-col justify-between top-0 border-b bg-white z-10 px-8 py-4">
+      {showWinnerBanner && (
+        <div className="alert alert-success fixed m-0 flex justify-center align-center inset-0 z-30 shadow-lg">
+          <span className="animate-bounce text-3xl">
+            🏆 You won this round!
+          </span>
+        </div>
+      )}
+
+      <div className="sticky flex flex-col gap-3 top-0 border-b bg-white z-10 px-8 py-4">
         <BlackCard card={blackCard} />
         {/* <RoundMeta */}
         {/*   roundNumber={round.round_number} */}
@@ -153,31 +180,37 @@ function RoundViewPage() {
         {/*   submissions={submissionsCount} */}
         {/*   totalPlayers={players.length} */}
         {/* /> */}
-      </div>
 
-      <div className="max-w-4xl mx-auto p-8 space-y-8">
-        {showWinnerBanner && (
-          <div className="alert alert-success fixed m-0 flex justify-center align-center inset-0 z-30 shadow-lg">
-            <span className="animate-bounce text-3xl">
-              🏆 You won this round!
-            </span>
-          </div>
-        )}
+        {isJudge && !allSubmitted && <JudgeWaiting />}
 
         {hasSubmitted && !round.winning_player_id && !isJudge && (
-          <div className="alert alert-info">
+          <div className="alert">
             You’ve submitted your cards. Waiting for other players…
           </div>
         )}
+      </div>
 
+      <div className="max-w-4xl mx-auto p-8 space-y-8">
         {isJudge ? (
-          <JudgePanel
-            round={round}
-            gameId={game.id}
-            players={players}
-            submissionsCount={submissionsCount}
-            onPickWinner={(playerId) => pickWinner(playerId, round.id)}
-          />
+          <>
+            <JudgePanel
+              round={round}
+              gameId={game.id}
+              gameSlug={game.slug}
+              players={players}
+              submissionsCount={submissionsCount}
+              onPickWinner={(playerId) => pickWinner(playerId, round.id)}
+            />
+
+            {/* Floating game info button for judge */}
+            <button
+              type="button"
+              onClick={() => setIsInfoPanelOpen(true)}
+              className="btn btn-outline fixed bottom-4 right-4 z-30 shadow-lg"
+            >
+              Game Info
+            </button>
+          </>
         ) : (
           <>
             {round.winning_player_id && (
@@ -194,9 +227,21 @@ function RoundViewPage() {
               submittedCardIds={hasSubmitted ? submittedCardIds : []}
               onToggleCard={hasSubmitted ? undefined : toggleCard}
               disabled={hasSubmitted}
+              playerScore={
+                players.find((p) => p.id === localPlayerId)?.score ?? 0
+              }
             />
 
-            <div className="fixed flex justify-between bottom-0 left-0 right-0 bg-base-100 border-t p-3">
+            <div className="fixed flex justify-between bottom-0 left-0 right-0 bg-base-100 border-t p-3 gap-3 z-30">
+              <button
+                type="button"
+                onClick={() => setIsInfoPanelOpen(true)}
+                className="btn btn-outline rounded-sm"
+              >
+                Game Info
+                <ChevronUp />
+              </button>
+
               <SubmitCardsButton
                 disabled={hasSubmitted || selectedCardIds.length !== pick}
                 onSubmit={submitCards}
@@ -206,6 +251,14 @@ function RoundViewPage() {
           </>
         )}
       </div>
+
+      {/* Game Info Panel */}
+      <GameInfoPanel
+        players={players}
+        roundNumber={round.round_number}
+        isOpen={isInfoPanelOpen}
+        onClose={() => setIsInfoPanelOpen(false)}
+      />
     </div>
   );
 }

@@ -6,16 +6,25 @@ export function PlayerHand({
   submittedCardIds = [],
   onToggleCard,
   disabled = false,
+  playerScore,
 }: {
   cards: Card[];
   selectedCardIds?: string[];
   submittedCardIds?: string[];
   onToggleCard?: (cardId: string) => void;
   disabled?: boolean;
+  playerScore?: number;
 }) {
   return (
     <div>
-      <h3 className="text-lg font-bold mb-2">Your Hand</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-bold">Your Hand</h3>
+        {playerScore !== undefined && (
+          <div className="text-lg font-bold">
+            Score: <span className="text-primary">{playerScore}</span>
+          </div>
+        )}
+      </div>
 
       <div className="grid pb-24 grid-cols-2 gap-3 sm:grid-cols-4">
         {cards.map((card) => {

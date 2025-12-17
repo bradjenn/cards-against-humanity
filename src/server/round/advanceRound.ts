@@ -13,7 +13,7 @@ export const advanceRound = createServerFn({ method: "POST" })
   .inputValidator(
     (data: { gameId: string; roundId: string; handSize?: number }) => data,
   )
-  .handler(async ({ data }): Promise<Round> => {
+  .handler(async ({ data }): Promise<Round | null> => {
     const supabase = supabaseAdmin();
     const { gameId, roundId, handSize = 10 } = data;
 
@@ -147,11 +147,38 @@ export const advanceRound = createServerFn({ method: "POST" })
         usedBlackIds.length ? `(${usedBlackIds.join(",")})` : "()",
       );
 
-    if (blackErr || !blackCards?.length) {
-      throw new Error("No black cards left");
+    if (blackErr) throw blackErr;
+
+    const blackDeck = shuffle((blackCards ?? []) as Card[]);
+    const remainingBlackCards = blackDeck.length;
+
+    /* --------------------------------
+     * 7a. Check if game should end
+     * -------------------------------- */
+
+    // Sort players by score (descending)
+    const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+    const leader = sortedPlayers[0];
+    const secondPlace = sortedPlayers[1] ?? { score: 0 };
+
+    // Condition 1: No more black cards
+    const noCardsLeft = remainingBlackCards === 0;
+
+    // Condition 2: Mathematical victory (leader can't be caught)
+    const mathematicalVictory = leader && (leader.score > secondPlace.score + remainingBlackCards);
+
+    if (noCardsLeft || mathematicalVictory) {
+      // Game is over - mark as finished
+      await supabase
+        .from("games")
+        .update({
+          status: "FINISHED",
+        })
+        .eq("id", gameId);
+
+      return null; // No next round, game has ended
     }
 
-    const blackDeck = shuffle(blackCards as Card[]);
     const nextBlack = blackDeck[0];
 
     /* --------------------------------
