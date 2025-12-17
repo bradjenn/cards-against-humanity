@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { Card } from "@/types/db";
 
 function normalizeCardText(cardText: string, isStartOfSentence: boolean): string {
@@ -77,11 +78,13 @@ export function BlackCard({
   card: Card;
   selectedCards?: Card[];
 }) {
+  const displayText = useMemo(() => {
+    return selectedCards.length > 0 ? fillBlanks(card.text, selectedCards) : card.text;
+  }, [card.text, selectedCards]);
+
   return (
     <div className="bg-neutral text-neutral-content p-8 rounded-lg shadow-md">
-      <p className="text-lg font-bold">
-        {selectedCards.length > 0 ? fillBlanks(card.text, selectedCards) : card.text}
-      </p>
+      <p className="text-lg font-bold">{displayText}</p>
     </div>
   );
 }

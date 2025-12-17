@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GamePlayer } from "@/types/db";
@@ -13,7 +14,10 @@ export function GameInfoPanel({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = useMemo(
+    () => [...players].sort((a, b) => b.score - a.score),
+    [players],
+  );
 
   return (
     <>

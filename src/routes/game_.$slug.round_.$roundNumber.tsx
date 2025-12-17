@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BlackCard } from "@/components/round/BlackCard";
 import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { GameInfoPanel } from "@/components/round/GameInfoPanel";
@@ -126,21 +126,24 @@ function RoundViewPage() {
     }
   }, [game.status, game.round_number, round.round_number, game.slug, navigate]);
 
-  function toggleCard(cardId: string) {
-    setSelectedCardIds((prev) => {
-      if (prev.includes(cardId)) {
-        return prev.filter((id) => id !== cardId);
-      }
+  const toggleCard = useCallback(
+    (cardId: string) => {
+      setSelectedCardIds((prev) => {
+        if (prev.includes(cardId)) {
+          return prev.filter((id) => id !== cardId);
+        }
 
-      if (prev.length >= pick) {
-        return prev;
-      }
+        if (prev.length >= pick) {
+          return prev;
+        }
 
-      return [...prev, cardId];
-    });
-  }
+        return [...prev, cardId];
+      });
+    },
+    [pick],
+  );
 
-  async function submitCards() {
+  const submitCards = useCallback(async () => {
     if (!localPlayerId) return;
 
     try {
@@ -155,20 +158,23 @@ function RoundViewPage() {
     } catch (err) {
       console.error("Failed to submit cards", err);
     }
-  }
+  }, [localPlayerId, supabase, round.id, selectedCardIds, refreshSubmittedCards]);
 
-  async function pickWinner(playerId: string, roundId: string) {
-    try {
-      await pickWinnerMutation.mutateAsync({
-        roundId,
-        winningPlayerId: playerId,
-      });
-    } catch (err) {
-      console.error("Failed to pick winner", err);
-    }
-  }
+  const pickWinner = useCallback(
+    async (playerId: string, roundId: string) => {
+      try {
+        await pickWinnerMutation.mutateAsync({
+          roundId,
+          winningPlayerId: playerId,
+        });
+      } catch (err) {
+        console.error("Failed to pick winner", err);
+      }
+    },
+    [pickWinnerMutation],
+  );
 
-  async function handleAdvanceRound() {
+  const handleAdvanceRound = useCallback(async () => {
     try {
       const result = await advanceRoundMutation.mutateAsync({
         gameId: game.id,
@@ -185,9 +191,9 @@ function RoundViewPage() {
     } catch (err) {
       console.error("Failed to advance round", err);
     }
-  }
+  }, [advanceRoundMutation, game.id, game.slug, round.id, navigate]);
 
-  async function handleRevealNext() {
+  const handleRevealNext = useCallback(async () => {
     setRevealing(true);
     try {
       await revealNextSubmission({
@@ -198,7 +204,7 @@ function RoundViewPage() {
     } finally {
       setRevealing(false);
     }
-  }
+  }, [round.id]);
 
   /* ---------------------------
    * Render
