@@ -1,4 +1,3 @@
-import { JudgeReveal } from "@/components/round/JudgeReveal";
 import { JudgeView } from "@/components/round/JudgeView";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import type { GamePlayer, Round } from "@/types/db";
@@ -14,9 +13,6 @@ export function JudgePanel({
   submissionsCount: number;
   onPickWinner: (playerId: string) => void;
 }) {
-  const expectedSubmitters = Math.max(players.length - 1, 0);
-  const allSubmitted = submissionsCount >= expectedSubmitters;
-
   const { submissions, cardsByPlayer } = useJudgeSubmissions(round.id);
 
   const submissionsWithCards = submissions.map((s) => ({
@@ -24,20 +20,9 @@ export function JudgePanel({
     cards: cardsByPlayer[s.player_id] ?? [],
   }));
 
-  const revealed = submissionsWithCards.slice(0, round.revealed_count);
-
-  if (!allSubmitted) {
+  // Show submissions as they come in, all blurred initially
+  if (submissionsWithCards.length === 0) {
     return null;
-  }
-
-  if (round.revealed_count < submissionsWithCards.length) {
-    return (
-      <JudgeReveal
-        revealedSubmissions={revealed}
-        totalSubmissions={submissionsWithCards.length}
-        players={players}
-      />
-    );
   }
 
   return (
@@ -46,6 +31,8 @@ export function JudgePanel({
       players={players}
       onPickWinner={onPickWinner}
       winningSubmissionId={round.winning_player_id}
+      revealedCount={round.revealed_count}
+      totalSubmissions={submissionsCount}
     />
   );
 }

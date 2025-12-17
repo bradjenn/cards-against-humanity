@@ -87,7 +87,15 @@ function RoundViewPage() {
   const expectedSubmitters = Math.max(players.length - 1, 0);
   const allSubmitted = submissionsCount >= expectedSubmitters;
   const isRevealing =
-    allSubmitted && round.revealed_count < submissionsWithCards.length;
+    allSubmitted && round.revealed_count < submissionsCount;
+
+  // Get selected cards in order for black card preview
+  // If player has submitted, show their submitted cards; otherwise show currently selected cards
+  const selectedCards = !isJudge
+    ? hasSubmitted
+      ? submittedCardIds.map((id) => hand.find((card) => card.id === id)).filter(Boolean)
+      : selectedCardIds.map((id) => hand.find((card) => card.id === id)).filter(Boolean)
+    : [];
 
   useEffect(() => {
     if (!round.id) return;
@@ -209,7 +217,7 @@ function RoundViewPage() {
 
       <div className="sticky  top-0 border-b bg-white z-10">
         <div className="flex flex-col gap-3 max-w-4xl px-8 py-4 mx-auto">
-          <BlackCard card={blackCard} />
+          <BlackCard card={blackCard} selectedCards={selectedCards} />
         </div>
       </div>
 
@@ -263,6 +271,7 @@ function RoundViewPage() {
                 submissions={submissionsWithCards}
                 players={players}
                 winningSubmissionId={round.winning_player_id}
+                totalSubmissions={submissionsCount}
               />
             )}
             <PlayerHand

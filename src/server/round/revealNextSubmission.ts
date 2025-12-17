@@ -18,14 +18,19 @@ export const revealNextSubmission = createServerFn({ method: "POST" })
       throw new Error("Round not found");
     }
 
-    const { count: submissionCount, error: countErr } = await supabase
+    // Count unique players who submitted (not total cards)
+    const { data: submissions, error: countErr } = await supabase
       .from("submissions")
-      .select("*", { count: "exact", head: true })
+      .select("player_id")
       .eq("round_id", roundId);
 
-    if (countErr || submissionCount === null) {
+    if (countErr || !submissions) {
       throw new Error("Could not count submissions");
     }
+
+    // Get unique player count
+    const uniquePlayers = new Set(submissions.map((s) => s.player_id));
+    const submissionCount = uniquePlayers.size;
 
     // 2 Guard: do not exceed submission count
     if (round.revealed_count >= submissionCount) {

@@ -7,6 +7,8 @@ export function JudgeView({
   players,
   winningSubmissionId,
   onPickWinner,
+  revealedCount,
+  totalSubmissions,
 }: {
   submissions: {
     submissionId: string;
@@ -15,31 +17,53 @@ export function JudgeView({
   players: GamePlayer[];
   winningSubmissionId?: string | null;
   onPickWinner?: (submissionId: string) => void;
+  revealedCount?: number;
+  totalSubmissions?: number;
 }) {
+  const total = totalSubmissions ?? submissions.length;
+  const allRevealed = revealedCount === undefined || revealedCount >= total;
+  const isRevealing = revealedCount !== undefined && revealedCount > 0;
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold">
-        {winningSubmissionId ? "Round results" : "Pick the winning submission"}
+        {winningSubmissionId
+          ? "Round results"
+          : allRevealed
+            ? "Pick the winning submission"
+            : isRevealing
+              ? `Revealing submissions (${revealedCount} / ${total})`
+              : `Submissions (${submissions.length} / ${total})`}
       </h3>
 
-      <div className="grid gap-4">
-        {submissions.map((submission) => {
+      <div className="grid gap-4 md:grid-cols-2">
+        {submissions.map((submission, index) => {
           const isWinner = submission.submissionId === winningSubmissionId;
           const author = players.find((p) => p.id === submission.submissionId);
+          const isRevealed =
+            revealedCount === undefined || index < revealedCount;
 
           return (
             <button
               key={submission.submissionId}
               type="button"
-              disabled={!!winningSubmissionId}
+              disabled={!!winningSubmissionId || !isRevealed || !allRevealed}
               onClick={
-                !winningSubmissionId && onPickWinner
+                !winningSubmissionId &&
+                onPickWinner &&
+                allRevealed &&
+                isRevealed
                   ? () => onPickWinner(submission.submissionId)
                   : undefined
               }
               className={cn(
                 "rounded-xl p-4 transition-all",
-                isWinner ? "bg-success/10" : "bg-base-100 hover:bg-base-200",
+                isWinner ? "bg-success/10" : "bg-base-100",
+                !isRevealed && "opacity-50",
+                isRevealed &&
+                  !winningSubmissionId &&
+                  allRevealed &&
+                  "hover:bg-base-200 cursor-pointer",
                 winningSubmissionId && !isWinner && "opacity-60",
               )}
             >
@@ -47,7 +71,8 @@ export function JudgeView({
                 <div
                   className={cn(
                     "font-semibold transition-all duration-300",
-                    !winningSubmissionId && "blur select-none",
+                    (!isRevealed || !winningSubmissionId) &&
+                      "blur-sm select-none",
                   )}
                 >
                   {author ? author.name : "Unknown"}
@@ -58,7 +83,12 @@ export function JudgeView({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div
+                className={cn(
+                  "grid grid-cols-2 gap-3 transition-all duration-300",
+                  !isRevealed && "blur-sm",
+                )}
+              >
                 {submission.cards.map((card) => (
                   <SubmissionCard key={card.id} card={card} />
                 ))}
