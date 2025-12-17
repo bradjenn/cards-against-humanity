@@ -51,7 +51,6 @@ function RoundViewPage() {
   const advanceRoundMutation = useAdvanceRound();
 
   const isJudge = localPlayerId === round.judge_id;
-  // const judge = players.find((p) => p.id === round.judge_id) ?? null;
 
   /* ---------------------------
    * Player submission state

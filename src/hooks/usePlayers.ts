@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { fetchPlayersForGame } from "@/services/playerService";
+import { getPlayersForGame } from "@/queries/playerQueries";
 import type { GamePlayer } from "@/types/db";
 
 export function usePlayers(supabase: SupabaseClient, gameId: string | null) {
@@ -12,7 +12,7 @@ export function usePlayers(supabase: SupabaseClient, gameId: string | null) {
     if (!gameId) return;
 
     async function loadPlayers(id: string) {
-      const data = await fetchPlayersForGame(supabase, id);
+      const data = await getPlayersForGame(supabase, id);
       setPlayers(data);
       // Invalidate players query to keep cache in sync
       queryClient.invalidateQueries({ queryKey: ["players", id] });
