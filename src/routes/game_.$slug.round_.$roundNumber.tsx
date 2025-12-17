@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BlackCard } from "@/components/round/BlackCard";
+import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { GameInfoPanel } from "@/components/round/GameInfoPanel";
 import { JudgePanel } from "@/components/round/JudgePanel";
 import { JudgeView } from "@/components/round/JudgeView";
-import { JudgeWaiting } from "@/components/round/JudgeWaiting";
 import { PlayerHand } from "@/components/round/PlayerHand";
-// import { RoundMeta } from "@/components/round/RoundMeta";
-import { SubmitCardsButton } from "@/components/round/SubmitCardsButton";
 import { useSupabase } from "@/components/SupabaseProvider";
+import { useAdvanceRound } from "@/hooks/mutations/useAdvanceRound";
+import { usePickWinner } from "@/hooks/mutations/usePickWinner";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
@@ -19,7 +18,7 @@ import { useRoundRealtime } from "@/hooks/useRoundRealtime";
 import { useSubmittedCards } from "@/hooks/useSubmittedCards";
 import { useWinnerCelebration } from "@/hooks/useWinnerCelebration";
 import { roundLoader } from "@/loaders/roundLoader";
-import { pickRoundWinner } from "@/server/round/pickRoundWinner";
+import { revealNextSubmission } from "@/server/round/revealNextSubmission";
 import { submitRoundCards } from "@/services/roundService";
 
 export const Route = createFileRoute("/game_/$slug/round_/$roundNumber")({
@@ -46,6 +45,10 @@ function RoundViewPage() {
 
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+
+  const pickWinnerMutation = usePickWinner();
+  const advanceRoundMutation = useAdvanceRound();
 
   const isJudge = localPlayerId === round.judge_id;
   // const judge = players.find((p) => p.id === round.judge_id) ?? null;
@@ -83,6 +86,8 @@ function RoundViewPage() {
 
   const expectedSubmitters = Math.max(players.length - 1, 0);
   const allSubmitted = submissionsCount >= expectedSubmitters;
+  const isRevealing =
+    allSubmitted && round.revealed_count < submissionsWithCards.length;
 
   useEffect(() => {
     if (!round.id) return;
@@ -147,14 +152,44 @@ function RoundViewPage() {
 
   async function pickWinner(playerId: string, roundId: string) {
     try {
-      await pickRoundWinner({
-        data: {
-          roundId,
-          winningPlayerId: playerId,
-        },
+      await pickWinnerMutation.mutateAsync({
+        roundId,
+        winningPlayerId: playerId,
       });
     } catch (err) {
       console.error("Failed to pick winner", err);
+    }
+  }
+
+  async function handleAdvanceRound() {
+    try {
+      const result = await advanceRoundMutation.mutateAsync({
+        gameId: game.id,
+        roundId: round.id,
+      });
+
+      // If result is null, game has ended
+      if (result === null) {
+        navigate({
+          to: "/game/$slug/game-over",
+          params: { slug: game.slug },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to advance round", err);
+    }
+  }
+
+  async function handleRevealNext() {
+    setRevealing(true);
+    try {
+      await revealNextSubmission({
+        data: {
+          roundId: round.id,
+        },
+      });
+    } finally {
+      setRevealing(false);
     }
   }
 
@@ -165,51 +200,61 @@ function RoundViewPage() {
   return (
     <div className="">
       {showWinnerBanner && (
-        <div className="alert alert-success fixed m-0 flex justify-center align-center inset-0 z-30 shadow-lg">
+        <div className="alert alert-success fixed m-0 flex justify-center align-center inset-0 z-50 shadow-lg">
           <span className="animate-bounce text-3xl">
             🏆 You won this round!
           </span>
         </div>
       )}
 
-      <div className="sticky flex flex-col gap-3 top-0 border-b bg-white z-10 px-8 py-4">
-        <BlackCard card={blackCard} />
-        {/* <RoundMeta */}
-        {/*   roundNumber={round.round_number} */}
-        {/*   judge={judge} */}
-        {/*   submissions={submissionsCount} */}
-        {/*   totalPlayers={players.length} */}
-        {/* /> */}
-
-        {isJudge && !allSubmitted && <JudgeWaiting />}
-
-        {hasSubmitted && !round.winning_player_id && !isJudge && (
-          <div className="alert">
-            You’ve submitted your cards. Waiting for other players…
-          </div>
-        )}
+      <div className="sticky  top-0 border-b bg-white z-10">
+        <div className="flex flex-col gap-3 max-w-4xl px-8 py-4 mx-auto">
+          <BlackCard card={blackCard} />
+        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-8 space-y-8">
+      <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
         {isJudge ? (
           <>
             <JudgePanel
               round={round}
-              gameId={game.id}
-              gameSlug={game.slug}
               players={players}
               submissionsCount={submissionsCount}
               onPickWinner={(playerId) => pickWinner(playerId, round.id)}
             />
 
-            {/* Floating game info button for judge */}
-            <button
-              type="button"
-              onClick={() => setIsInfoPanelOpen(true)}
-              className="btn btn-outline fixed bottom-4 right-4 z-30 shadow-lg"
-            >
-              Game Info
-            </button>
+            <BottomToolbar
+              gameInfoButton={{
+                onClick: () => setIsInfoPanelOpen(true),
+              }}
+              content={
+                !allSubmitted
+                  ? {
+                      message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
+                    }
+                  : isRevealing
+                    ? {
+                        label: revealing
+                          ? "Revealing…"
+                          : "Reveal next submission",
+                        onClick: handleRevealNext,
+                        disabled: revealing,
+                        variant: "primary",
+                      }
+                    : round.winning_player_id
+                      ? {
+                          label: advanceRoundMutation.isPending
+                            ? "Starting next round…"
+                            : "Start next round",
+                          onClick: handleAdvanceRound,
+                          disabled: advanceRoundMutation.isPending,
+                          variant: "primary",
+                        }
+                      : {
+                          message: "Pick the winning submission above",
+                        }
+              }
+            />
           </>
         ) : (
           <>
@@ -232,22 +277,23 @@ function RoundViewPage() {
               }
             />
 
-            <div className="fixed flex justify-between bottom-0 left-0 right-0 bg-base-100 border-t p-3 gap-3 z-30">
-              <button
-                type="button"
-                onClick={() => setIsInfoPanelOpen(true)}
-                className="btn btn-outline rounded-sm"
-              >
-                Game Info
-                <ChevronUp />
-              </button>
-
-              <SubmitCardsButton
-                disabled={hasSubmitted || selectedCardIds.length !== pick}
-                onSubmit={submitCards}
-                pick={pick}
-              />
-            </div>
+            <BottomToolbar
+              gameInfoButton={{
+                onClick: () => setIsInfoPanelOpen(true),
+              }}
+              content={
+                hasSubmitted
+                  ? {
+                      message: "Waiting for other players to submit…",
+                    }
+                  : {
+                      label: `Submit ${pick} Card${pick > 1 ? "s" : ""}`,
+                      onClick: submitCards,
+                      disabled: selectedCardIds.length !== pick,
+                      variant: "primary",
+                    }
+              }
+            />
           </>
         )}
       </div>

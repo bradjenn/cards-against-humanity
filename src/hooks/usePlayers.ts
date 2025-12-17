@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { fetchPlayersForGame } from "@/services/playerService";
 import type { GamePlayer } from "@/types/db";
 
 export function usePlayers(supabase: SupabaseClient, gameId: string | null) {
+  const queryClient = useQueryClient();
   const [players, setPlayers] = useState<GamePlayer[]>([]);
 
   useEffect(() => {
@@ -12,6 +14,8 @@ export function usePlayers(supabase: SupabaseClient, gameId: string | null) {
     async function loadPlayers(id: string) {
       const data = await fetchPlayersForGame(supabase, id);
       setPlayers(data);
+      // Invalidate players query to keep cache in sync
+      queryClient.invalidateQueries({ queryKey: ["players", id] });
     }
 
     loadPlayers(gameId);
@@ -33,7 +37,7 @@ export function usePlayers(supabase: SupabaseClient, gameId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, gameId]);
+  }, [supabase, gameId, queryClient]);
 
   return players;
 }

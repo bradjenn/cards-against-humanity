@@ -1,3 +1,5 @@
+import { SubmissionCard } from "@/components/round/SubmissionCard";
+import { cn } from "@/lib/utils";
 import type { Card, GamePlayer } from "@/types/db";
 
 export function JudgeView({
@@ -35,24 +37,18 @@ export function JudgeView({
                   ? () => onPickWinner(submission.submissionId)
                   : undefined
               }
-              className={[
-                "border rounded-xl p-4 transition",
-                isWinner
-                  ? "border-success bg-success/10"
-                  : "hover:border-primary",
+              className={cn(
+                "rounded-xl p-4 transition-all",
+                isWinner ? "bg-success/10" : "bg-base-100 hover:bg-base-200",
                 winningSubmissionId && !isWinner && "opacity-60",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              )}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <div
-                  className={[
+                  className={cn(
                     "font-semibold transition-all duration-300",
-                    !winningSubmissionId && "blur-sm opacity-50 select-none",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                    !winningSubmissionId && "blur select-none",
+                  )}
                 >
                   {author ? author.name : "Unknown"}
                 </div>
@@ -64,12 +60,7 @@ export function JudgeView({
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {submission.cards.map((card) => (
-                  <div
-                    key={card.id}
-                    className="card bg-base-100 border-2 min-h-14 p-3 text-sm"
-                  >
-                    {card.text}
-                  </div>
+                  <SubmissionCard key={card.id} card={card} />
                 ))}
               </div>
             </button>

@@ -1,31 +1,19 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { JudgeReveal } from "@/components/round/JudgeReveal";
 import { JudgeView } from "@/components/round/JudgeView";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
-import { advanceRound } from "@/server/round/advanceRound";
-import { revealNextSubmission } from "@/server/round/revealNextSubmission";
 import type { GamePlayer, Round } from "@/types/db";
 
 export function JudgePanel({
   round,
-  gameId,
-  gameSlug,
   players,
   submissionsCount,
   onPickWinner,
 }: {
-  gameId: string;
-  gameSlug: string;
   round: Round;
   players: GamePlayer[];
   submissionsCount: number;
   onPickWinner: (playerId: string) => void;
 }) {
-  const navigate = useNavigate();
-  const [revealing, setRevealing] = useState(false);
-  const [advancing, setAdvancing] = useState(false);
-
   const expectedSubmitters = Math.max(players.length - 1, 0);
   const allSubmitted = submissionsCount >= expectedSubmitters;
 
@@ -38,43 +26,6 @@ export function JudgePanel({
 
   const revealed = submissionsWithCards.slice(0, round.revealed_count);
 
-  async function handleRevealNext() {
-    setRevealing(true);
-    try {
-      await revealNextSubmission({
-        data: {
-          roundId: round.id,
-        },
-      });
-    } finally {
-      setRevealing(false);
-    }
-  }
-
-  async function handleAdvanceRound() {
-    setAdvancing(true);
-    try {
-      const result = await advanceRound({
-        data: {
-          gameId,
-          roundId: round.id,
-        },
-      });
-
-      // If result is null, game has ended
-      if (result === null) {
-        navigate({
-          to: "/game/$slug/game-over",
-          params: { slug: gameSlug },
-        });
-      }
-    } catch (err) {
-      console.error("Failed to advance round", err);
-    } finally {
-      setAdvancing(false);
-    }
-  }
-
   if (!allSubmitted) {
     return null;
   }
@@ -84,31 +35,17 @@ export function JudgePanel({
       <JudgeReveal
         revealedSubmissions={revealed}
         totalSubmissions={submissionsWithCards.length}
-        onRevealNext={handleRevealNext}
-        isRevealing={revealing}
+        players={players}
       />
     );
   }
 
   return (
-    <div className="space-y-6">
-      <JudgeView
-        submissions={submissionsWithCards}
-        players={players}
-        onPickWinner={onPickWinner}
-        winningSubmissionId={round.winning_player_id}
-      />
-
-      {round.winning_player_id && (
-        <button
-          type="button"
-          className="btn btn-primary w-full"
-          disabled={advancing}
-          onClick={handleAdvanceRound}
-        >
-          {advancing ? "Starting next round…" : "Start next round"}
-        </button>
-      )}
-    </div>
+    <JudgeView
+      submissions={submissionsWithCards}
+      players={players}
+      onPickWinner={onPickWinner}
+      winningSubmissionId={round.winning_player_id}
+    />
   );
 }

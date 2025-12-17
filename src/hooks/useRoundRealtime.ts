@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/components/SupabaseProvider";
 import type { Round } from "@/types/db";
@@ -9,6 +10,7 @@ export function useRoundRealtime({
   initialRound: Round;
   initialSubmissionsCount: number;
 }) {
+  const queryClient = useQueryClient();
   const supabase = useSupabase();
 
   const [round, setRound] = useState<Round>(initialRound);
@@ -44,6 +46,9 @@ export function useRoundRealtime({
           if (data) {
             const uniquePlayers = new Set(data.map((r) => r.player_id));
             setSubmissionsCount(uniquePlayers.size);
+            // Invalidate submissionCount and submittedCards queries
+            queryClient.invalidateQueries({ queryKey: ["submissionCount", round.id] });
+            queryClient.invalidateQueries({ queryKey: ["submittedCards", round.id] });
           }
         },
       )
@@ -56,7 +61,10 @@ export function useRoundRealtime({
           filter: `id=eq.${round.id}`,
         },
         (payload) => {
-          setRound(payload.new as Round);
+          const updatedRound = payload.new as Round;
+          setRound(updatedRound);
+          // Invalidate round query to keep cache in sync
+          queryClient.invalidateQueries({ queryKey: ["round"] });
         },
       )
       .subscribe();
@@ -64,7 +72,7 @@ export function useRoundRealtime({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, round.id]);
+  }, [supabase, round.id, queryClient]);
 
   return {
     round,

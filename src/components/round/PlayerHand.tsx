@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import type { Card } from "@/types/db";
 
 export function PlayerHand({
@@ -37,17 +38,15 @@ export function PlayerHand({
               type="button"
               disabled={disabled}
               onClick={() => onToggleCard?.(card.id)}
-              className={`
-                card border-2 h-52 rounded-sm p-3 text-sm shadow font-bold cursor-pointer text-left transition
-                ${
-                  isSubmitted
-                    ? "border-4 border-primary bg-base-200"
-                    : isSelected
-                      ? "border-primary bg-base-300"
-                      : "bg-base-100"
-                }
-                ${disabled ? "cursor-not-allowed opacity-80" : "hover:shadow"}
-              `}
+              className={cn(
+                "bg-white border-2 flex items-start rounded-lg shadow-sm min-h-60 p-3 text-sm text-left font-bold cursor-pointer transition-all",
+                isSubmitted && "border-4 border-primary bg-blue-50",
+                isSelected &&
+                  !isSubmitted &&
+                  "border-primary outline-3 bg-neutral-100 shadow-md",
+                !isSelected && !isSubmitted && "border-black",
+                disabled ? "cursor-not-allowed opacity-80" : "hover:shadow-md",
+              )}
             >
               {card.text}
             </button>

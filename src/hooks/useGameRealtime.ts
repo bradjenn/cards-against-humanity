@@ -1,8 +1,10 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/components/SupabaseProvider";
 import type { Game } from "@/types/db";
 
 export function useGameRealtime(initialGame: Game) {
+  const queryClient = useQueryClient();
   const supabase = useSupabase();
   const [game, setGame] = useState(initialGame);
 
@@ -22,7 +24,10 @@ export function useGameRealtime(initialGame: Game) {
           filter: `id=eq.${game.id}`,
         },
         (payload) => {
-          setGame(payload.new as Game);
+          const updatedGame = payload.new as Game;
+          setGame(updatedGame);
+          // Invalidate game query to keep cache in sync
+          queryClient.invalidateQueries({ queryKey: ["game", updatedGame.slug] });
         },
       )
       .subscribe();
@@ -30,7 +35,7 @@ export function useGameRealtime(initialGame: Game) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, game.id]);
+  }, [supabase, game.id, queryClient]);
 
   return game;
 }

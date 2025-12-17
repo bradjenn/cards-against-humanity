@@ -11,6 +11,7 @@ import { useSupabase } from "@/components/SupabaseProvider";
 import { canStartGame } from "@/domain/rules";
 import { useDisconnectTracking } from "@/hooks/useDisconnectTracking";
 import { useGame } from "@/hooks/useGame";
+import { useGameRealtime } from "@/hooks/useGameRealtime";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
 import { usePlayers } from "@/hooks/usePlayers";
 import { dealLateJoinHand } from "@/server/game/dealLateJoinHand";
@@ -27,16 +28,36 @@ function GameLobbyPage() {
   const navigate = Route.useNavigate();
   const supabase = useSupabase() as SupabaseClient;
 
-  const { game, loading } = useGame(supabase, slug);
+  const { game: initialGame, loading } = useGame(supabase, slug);
+  const game = initialGame ? useGameRealtime(initialGame) : initialGame;
   const [localPlayerId, setLocalPlayerId] = useLocalPlayerId();
   const players = usePlayers(supabase, game?.id ?? null);
 
   const [joinName, setJoinName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(true);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
   useDisconnectTracking(supabase, localPlayerId);
+
+  // Check localStorage for existing player name
+  useEffect(() => {
+    const playerId = window.localStorage.getItem("cah_player_id");
+    if (playerId) {
+      supabase
+        .from("game_players")
+        .select("name")
+        .eq("id", playerId)
+        .single()
+        .then(({ data }) => {
+          if (data?.name) {
+            setJoinName(data.name);
+            setIsEditingName(false);
+          }
+        });
+    }
+  }, [supabase]);
 
   const isPlayer =
     !!game && !!localPlayerId && players.some((p) => p.id === localPlayerId);
@@ -163,6 +184,8 @@ function GameLobbyPage() {
           setJoinName={setJoinName}
           joinError={joinError}
           onJoin={() => handleJoin(game.id)}
+          isEditingName={isEditingName}
+          onEditName={() => setIsEditingName(true)}
         />
       )}
     </div>

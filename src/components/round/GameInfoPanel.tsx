@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { GamePlayer } from "@/types/db";
 
 export function GameInfoPanel({
@@ -26,15 +27,14 @@ export function GameInfoPanel({
 
       {/* Sliding Panel */}
       <div
-        className={`
-          fixed bottom-0 left-0 right-0 bg-base-100 border-t z-50
-          transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-y-0" : "translate-y-full"}
-        `}
+        className={cn(
+          "fixed bottom-0 left-0 right-0 bg-base-100 border-t z-50 transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-y-0" : "translate-y-full",
+        )}
         style={{ maxHeight: "70vh" }}
       >
         <div
-          className="p-6 space-y-6 overflow-y-auto"
+          className="py-6 px-8 space-y-6 overflow-y-auto max-w-4xl mx-auto"
           style={{ maxHeight: "70vh" }}
         >
           {/* Header */}
@@ -69,14 +69,19 @@ export function GameInfoPanel({
                 return (
                   <div
                     key={player.id}
-                    className={`
-                      card p-4 flex flex-row justify-between items-center
-                      ${isFirst ? "bg-primary text-primary-content" : "bg-base-200"}
-                    `}
+                    className={cn(
+                      "card p-4 flex flex-row justify-between items-center",
+                      isFirst
+                        ? "bg-primary text-primary-content"
+                        : "bg-base-200",
+                    )}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`text-2xl font-bold ${isFirst ? "" : "text-base-content/50"}`}
+                        className={cn(
+                          "text-2xl font-bold",
+                          !isFirst && "text-base-content/50",
+                        )}
                       >
                         #{index + 1}
                       </div>

@@ -8,6 +8,7 @@ import {
   uniqueNamesGenerator,
 } from "unique-names-generator";
 import { useSupabase } from "@/components/SupabaseProvider";
+import { cn } from "@/lib/utils";
 import { newGameLoader } from "@/loaders/newGameLoader";
 import { createGame } from "@/server/game/createGame";
 
@@ -154,13 +155,12 @@ function NewGamePage() {
                 key={pack.id}
                 type="button"
                 onClick={() => togglePack(pack.id)}
-                className={`card p-4 border transition
-                  ${
-                    selected
-                      ? "bg-primary text-primary-content border-primary"
-                      : "bg-base-100 border-neutral"
-                  }
-                `}
+                className={cn(
+                  "card p-4 border transition",
+                  selected
+                    ? "bg-primary text-primary-content border-primary"
+                    : "bg-base-100 border-neutral"
+                )}
               >
                 {pack.name}
               </button>
