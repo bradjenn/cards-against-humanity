@@ -87,6 +87,7 @@ function RoundViewPage() {
   const allSubmitted = submissionsCount >= expectedSubmitters;
   const isRevealing =
     allSubmitted && round.revealed_count < submissionsCount;
+  const isCurrentRound = game.round_number === round.round_number;
 
   // Get selected cards in order for black card preview
   // If player has submitted, show their submitted cards; otherwise show currently selected cards
@@ -233,7 +234,11 @@ function RoundViewPage() {
               round={round}
               players={players}
               submissionsCount={submissionsCount}
-              onPickWinner={(playerId) => pickWinner(playerId, round.id)}
+              onPickWinner={
+                isCurrentRound
+                  ? (playerId) => pickWinner(playerId, round.id)
+                  : undefined
+              }
             />
 
             <BottomToolbar
@@ -241,31 +246,35 @@ function RoundViewPage() {
                 onClick: () => setIsInfoPanelOpen(true),
               }}
               content={
-                !allSubmitted
+                !isCurrentRound
                   ? {
-                      message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
+                      message: `This is a previous round. Current round: ${game.round_number}`,
                     }
-                  : isRevealing
+                  : !allSubmitted
                     ? {
-                        label: revealing
-                          ? "Revealing…"
-                          : "Reveal next submission",
-                        onClick: handleRevealNext,
-                        disabled: revealing,
-                        variant: "primary",
+                        message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
                       }
-                    : round.winning_player_id
+                    : isRevealing
                       ? {
-                          label: advanceRoundMutation.isPending
-                            ? "Starting next round…"
-                            : "Start next round",
-                          onClick: handleAdvanceRound,
-                          disabled: advanceRoundMutation.isPending,
+                          label: revealing
+                            ? "Revealing…"
+                            : "Reveal next submission",
+                          onClick: handleRevealNext,
+                          disabled: revealing,
                           variant: "primary",
                         }
-                      : {
-                          message: "Pick the winning submission above",
-                        }
+                      : round.winning_player_id
+                        ? {
+                            label: advanceRoundMutation.isPending
+                              ? "Starting next round…"
+                              : "Start next round",
+                            onClick: handleAdvanceRound,
+                            disabled: advanceRoundMutation.isPending,
+                            variant: "primary",
+                          }
+                        : {
+                            message: "Pick the winning submission above",
+                          }
               }
             />
           </>
@@ -284,8 +293,8 @@ function RoundViewPage() {
               cards={hand}
               selectedCardIds={!hasSubmitted ? selectedCardIds : []}
               submittedCardIds={hasSubmitted ? submittedCardIds : []}
-              onToggleCard={hasSubmitted ? undefined : toggleCard}
-              disabled={hasSubmitted}
+              onToggleCard={hasSubmitted || !isCurrentRound ? undefined : toggleCard}
+              disabled={hasSubmitted || !isCurrentRound}
               playerScore={
                 players.find((p) => p.id === localPlayerId)?.score ?? 0
               }
@@ -296,16 +305,20 @@ function RoundViewPage() {
                 onClick: () => setIsInfoPanelOpen(true),
               }}
               content={
-                hasSubmitted
+                !isCurrentRound
                   ? {
-                      message: "Waiting for other players to submit…",
+                      message: `This is a previous round. Current round: ${game.round_number}`,
                     }
-                  : {
-                      label: `Submit ${pick} Card${pick > 1 ? "s" : ""}`,
-                      onClick: submitCards,
-                      disabled: selectedCardIds.length !== pick,
-                      variant: "primary",
-                    }
+                  : hasSubmitted
+                    ? {
+                        message: "Waiting for other players to submit…",
+                      }
+                    : {
+                        label: `Submit ${pick} Card${pick > 1 ? "s" : ""}`,
+                        onClick: submitCards,
+                        disabled: selectedCardIds.length !== pick,
+                        variant: "primary",
+                      }
               }
             />
           </>
