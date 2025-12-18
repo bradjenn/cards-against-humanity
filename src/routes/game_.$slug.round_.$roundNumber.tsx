@@ -111,21 +111,8 @@ function RoundViewPage() {
         params: { slug: game.slug },
         replace: true,
       });
-      return;
     }
-
-    // Redirect to current round if we're viewing an old round
-    if (game.round_number > round.round_number) {
-      navigate({
-        to: "/game/$slug/round/$roundNumber",
-        params: {
-          slug: game.slug,
-          roundNumber: String(game.round_number),
-        },
-        replace: true,
-      });
-    }
-  }, [game.status, game.round_number, round.round_number, game.slug, navigate]);
+  }, [game.status, game.slug, navigate]);
 
   const toggleCard = useCallback(
     (cardId: string) => {
@@ -207,6 +194,16 @@ function RoundViewPage() {
     }
   }, [round.id]);
 
+  const goToCurrentRound = useCallback(() => {
+    navigate({
+      to: "/game/$slug/round/$roundNumber",
+      params: {
+        slug: game.slug,
+        roundNumber: String(game.round_number),
+      },
+    });
+  }, [game.slug, game.round_number, navigate]);
+
   /* ---------------------------
    * Render
    * --------------------------- */
@@ -218,6 +215,23 @@ function RoundViewPage() {
           <span className="animate-bounce text-3xl">
             🏆 You won this round!
           </span>
+        </div>
+      )}
+
+      {!isCurrentRound && (
+        <div className="alert alert-info sticky top-0 z-20 rounded-none border-b shadow-sm">
+          <div className="flex items-center justify-between w-full max-w-4xl mx-auto">
+            <span className="font-semibold">
+              📜 Round {round.round_number} Summary (Current round: {game.round_number})
+            </span>
+            <button
+              type="button"
+              onClick={goToCurrentRound}
+              className="btn btn-sm btn-primary"
+            >
+              Go to Current Round
+            </button>
+          </div>
         </div>
       )}
 
@@ -248,7 +262,9 @@ function RoundViewPage() {
               content={
                 !isCurrentRound
                   ? {
-                      message: `This is a previous round. Current round: ${game.round_number}`,
+                      label: `Go to Round ${game.round_number}`,
+                      onClick: goToCurrentRound,
+                      variant: "primary",
                     }
                   : !allSubmitted
                     ? {
@@ -307,7 +323,9 @@ function RoundViewPage() {
               content={
                 !isCurrentRound
                   ? {
-                      message: `This is a previous round. Current round: ${game.round_number}`,
+                      label: `Go to Round ${game.round_number}`,
+                      onClick: goToCurrentRound,
+                      variant: "primary",
                     }
                   : hasSubmitted
                     ? {
