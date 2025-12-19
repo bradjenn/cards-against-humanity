@@ -23,6 +23,7 @@ export function HostControls({
       )}
 
       <button
+        type="button"
         className="btn btn-primary w-full"
         disabled={!enoughPlayers || starting}
         onClick={onStartGame}
