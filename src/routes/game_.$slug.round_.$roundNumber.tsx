@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BlackCard } from "@/components/round/BlackCard";
 import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { GameInfoPanel } from "@/components/round/GameInfoPanel";
@@ -81,7 +81,7 @@ function RoundViewPage() {
 
   const isWinner =
     localPlayerId != null && round.winning_player_id === localPlayerId;
-  const { showWinnerBanner } = useWinnerCelebration({ isWinner });
+  const { showWinnerBanner, celebrationGif, gifLoaded } = useWinnerCelebration({ isWinner });
 
   const expectedSubmitters = Math.max(players.length - 1, 0);
   const allSubmitted = submissionsCount >= expectedSubmitters;
@@ -113,6 +113,29 @@ function RoundViewPage() {
       });
     }
   }, [game.status, game.slug, navigate]);
+
+  // Track when judge advances round to auto-redirect other players
+  // Only redirect when round_number CHANGES, not just when viewing old rounds
+  const prevRoundNumberRef = useRef(game.round_number);
+
+  useEffect(() => {
+    // Detect when game.round_number changes (judge advanced round)
+    if (prevRoundNumberRef.current !== game.round_number) {
+      prevRoundNumberRef.current = game.round_number;
+
+      // Only redirect if we're viewing an old round (not the new current round)
+      if (game.round_number !== round.round_number) {
+        navigate({
+          to: "/game/$slug/round/$roundNumber",
+          params: {
+            slug: game.slug,
+            roundNumber: String(game.round_number),
+          },
+          replace: true,
+        });
+      }
+    }
+  }, [game.round_number, game.slug, round.round_number, navigate]);
 
   const toggleCard = useCallback(
     (cardId: string) => {
@@ -175,6 +198,15 @@ function RoundViewPage() {
           to: "/game/$slug/game-over",
           params: { slug: game.slug },
         });
+      } else {
+        // Navigate to the new round
+        navigate({
+          to: "/game/$slug/round/$roundNumber",
+          params: {
+            slug: game.slug,
+            roundNumber: String(result.round_number),
+          },
+        });
       }
     } catch (err) {
       console.error("Failed to advance round", err);
@@ -211,10 +243,30 @@ function RoundViewPage() {
   return (
     <div className="">
       {showWinnerBanner && (
-        <div className="alert alert-success fixed m-0 flex justify-center align-center inset-0 z-50 shadow-lg">
-          <span className="animate-bounce text-3xl">
-            🏆 You won this round!
-          </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-white border-4 border-black rounded-lg p-8 max-w-md mx-4 text-center space-y-4">
+            <h2 className="text-4xl font-bold">
+              🏆 You Won This Round! 🏆
+            </h2>
+            {celebrationGif && (
+              <div className="w-full h-48 bg-gray-100 rounded-lg border-2 border-black overflow-hidden">
+                {gifLoaded ? (
+                  <img
+                    src={celebrationGif}
+                    alt="Celebration"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="loading loading-spinner loading-lg" />
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-lg font-semibold">
+              Your answer was the funniest!
+            </p>
+          </div>
         </div>
       )}
 
@@ -270,22 +322,22 @@ function RoundViewPage() {
                     ? {
                         message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
                       }
-                    : isRevealing
+                    : round.winning_player_id
                       ? {
-                          label: revealing
-                            ? "Revealing…"
-                            : "Reveal next submission",
-                          onClick: handleRevealNext,
-                          disabled: revealing,
+                          label: advanceRoundMutation.isPending
+                            ? "Starting next round…"
+                            : "Start next round",
+                          onClick: handleAdvanceRound,
+                          disabled: advanceRoundMutation.isPending,
                           variant: "primary",
                         }
-                      : round.winning_player_id
+                      : isRevealing
                         ? {
-                            label: advanceRoundMutation.isPending
-                              ? "Starting next round…"
-                              : "Start next round",
-                            onClick: handleAdvanceRound,
-                            disabled: advanceRoundMutation.isPending,
+                            label: revealing
+                              ? "Revealing…"
+                              : "Reveal next submission",
+                            onClick: handleRevealNext,
+                            disabled: revealing,
                             variant: "primary",
                           }
                         : {
@@ -327,16 +379,22 @@ function RoundViewPage() {
                       onClick: goToCurrentRound,
                       variant: "primary",
                     }
-                  : hasSubmitted
+                  : round.winning_player_id
                     ? {
-                        message: "Waiting for other players to submit…",
+                        message: "Round complete! Waiting for next round…",
                       }
-                    : {
-                        label: `Submit ${pick} Card${pick > 1 ? "s" : ""}`,
-                        onClick: submitCards,
-                        disabled: selectedCardIds.length !== pick,
-                        variant: "primary",
-                      }
+                    : hasSubmitted
+                      ? {
+                          message: allSubmitted
+                            ? "Waiting for judge to pick winner…"
+                            : "Waiting for other players to submit…",
+                        }
+                      : {
+                          label: `Submit ${pick} Card${pick > 1 ? "s" : ""}`,
+                          onClick: submitCards,
+                          disabled: selectedCardIds.length !== pick,
+                          variant: "primary",
+                        }
               }
             />
           </>

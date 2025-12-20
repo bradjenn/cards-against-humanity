@@ -41,7 +41,7 @@ export function JudgeView({
           const isWinner = submission.submissionId === winningSubmissionId;
           const author = players.find((p) => p.id === submission.submissionId);
           const isRevealed =
-            revealedCount === undefined || index < revealedCount;
+            revealedCount === undefined || index < revealedCount || allRevealed;
 
           return (
             <button
@@ -71,8 +71,7 @@ export function JudgeView({
                 <div
                   className={cn(
                     "font-semibold transition-all duration-300",
-                    (!isRevealed || !winningSubmissionId) &&
-                      "blur-sm select-none",
+                    !winningSubmissionId && "blur-sm select-none",
                   )}
                 >
                   {author ? author.name : "Unknown"}

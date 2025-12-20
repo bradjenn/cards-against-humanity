@@ -28,8 +28,9 @@ export async function roundLoader({
     });
   }
 
-  // Load game with caching
-  const game = await queryClient.ensureQueryData({
+  // Load game - always fetch fresh to avoid stale round_number
+  // (important because round_number updates when game starts)
+  const game = await queryClient.fetchQuery({
     queryKey: ["game", params.slug],
     queryFn: () => getGameBySlug(supabase, params.slug),
   });
@@ -38,8 +39,9 @@ export async function roundLoader({
     throw new Response("Game not found", { status: 404 });
   }
 
-  // Load round with caching
-  const round = await queryClient.ensureQueryData({
+  // Load round - always fetch fresh to avoid stale winning_player_id
+  // (important because winning_player_id updates when judge picks winner)
+  const round = await queryClient.fetchQuery({
     queryKey: ["round", game.id, roundNumber],
     queryFn: () => getRoundByNumber(supabase, game.id, roundNumber),
   });
