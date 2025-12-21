@@ -44,6 +44,9 @@ function RoundPage() {
   // Track previous game.round_number to detect when judge advances
   const prevGameRoundRef = useRef(game.round_number);
 
+  // Check if we're about to redirect (game just advanced, effect hasn't run yet)
+  const isAboutToRedirect = game.round_number > prevGameRoundRef.current;
+
   // Auto-redirect only when game.round_number actually increases (judge advanced)
   // This allows players to manually view past rounds without being redirected
   useEffect(() => {
@@ -56,13 +59,16 @@ function RoundPage() {
     }
   }, [game.round_number, goToCurrentRound]);
 
+  // Show past round banner only if viewing old round AND not about to redirect
+  const showPastRoundBanner = !isCurrentRound && !isAboutToRedirect;
+
   return (
     <div className="">
       {/* Winner celebration modal */}
       <WinnerBanner isWinner={isWinner} />
 
       {/* Past round banner */}
-      {!isCurrentRound && (
+      {showPastRoundBanner && (
         <PastRoundBanner
           game={game}
           round={round}
