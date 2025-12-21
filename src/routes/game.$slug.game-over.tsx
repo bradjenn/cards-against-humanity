@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
+import { useEffect, useState } from "react";
 import { useSupabase } from "@/components/SupabaseProvider";
 import type { GamePlayer } from "@/types/db";
 

@@ -1,16 +1,26 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { pickRoundWinner } from "@/server/round/pickRoundWinner";
 
 export function usePickWinner() {
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  return useMutation({
-    mutationFn: ({ roundId, winningPlayerId }: { roundId: string; winningPlayerId: string }) =>
-      pickRoundWinner({ data: { roundId, winningPlayerId } }),
-    onSuccess: () => {
-      // Invalidate round and players queries to get updated scores
-      queryClient.invalidateQueries({ queryKey: ["round"] });
-      queryClient.invalidateQueries({ queryKey: ["players"] });
+  const mutateAsync = useCallback(
+    async ({
+      roundId,
+      winningPlayerId,
+    }: {
+      roundId: string;
+      winningPlayerId: string;
+    }) => {
+      setIsPending(true);
+      try {
+        return await pickRoundWinner({ data: { roundId, winningPlayerId } });
+      } finally {
+        setIsPending(false);
+      }
     },
-  });
+    [],
+  );
+
+  return { mutateAsync, isPending };
 }

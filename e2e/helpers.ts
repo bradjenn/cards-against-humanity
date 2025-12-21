@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 /**
  * Navigate to a page and wait for React to be fully hydrated.
@@ -6,13 +6,15 @@ import type { Page } from '@playwright/test';
  */
 export async function gotoAndWaitForHydration(page: Page, url: string) {
   // Set up listener for Vite connection BEFORE navigation
-  const viteConnectedPromise = page.waitForEvent('console', {
-    predicate: (msg) => msg.text().includes('[vite] connected'),
-    timeout: 10000,
-  }).catch(() => {
-    // Fallback if Vite message doesn't appear
-    console.warn('Vite connection message not detected, continuing anyway');
-  });
+  const viteConnectedPromise = page
+    .waitForEvent("console", {
+      predicate: (msg) => msg.text().includes("[vite] connected"),
+      timeout: 10000,
+    })
+    .catch(() => {
+      // Fallback if Vite message doesn't appear
+      console.warn("Vite connection message not detected, continuing anyway");
+    });
 
   // Navigate to the page
   await page.goto(url);

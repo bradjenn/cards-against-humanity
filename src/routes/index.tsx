@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Target, TrendingUp, Trophy, User, Users, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import { homeLoader } from "@/loaders/homeLoader";
-import { Trophy, Users, Zap, Target, TrendingUp, User } from "lucide-react";
 import { useSupabase } from "@/components/SupabaseProvider";
-import { getPlayerStatsById, type PlayerStats } from "@/queries/statsQueries";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
+import { homeLoader } from "@/loaders/homeLoader";
+import { getPlayerStatsById, type PlayerStats } from "@/queries/statsQueries";
 
 export const Route = createFileRoute("/")({
   loader: homeLoader,
@@ -107,17 +107,23 @@ function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-white text-black rounded-lg p-4 border-2 border-black">
                 <div className="text-sm opacity-75 mb-1">Games Played</div>
-                <div className="text-2xl font-bold">{playerStats.gamesPlayed}</div>
+                <div className="text-2xl font-bold">
+                  {playerStats.gamesPlayed}
+                </div>
               </div>
 
               <div className="bg-white text-black rounded-lg p-4 border-2 border-black">
                 <div className="text-sm opacity-75 mb-1">Total Points</div>
-                <div className="text-2xl font-bold">{playerStats.totalScore}</div>
+                <div className="text-2xl font-bold">
+                  {playerStats.totalScore}
+                </div>
               </div>
 
               <div className="bg-white text-black rounded-lg p-4 border-2 border-black">
                 <div className="text-sm opacity-75 mb-1">Rounds Won</div>
-                <div className="text-2xl font-bold">{playerStats.roundsWon}</div>
+                <div className="text-2xl font-bold">
+                  {playerStats.roundsWon}
+                </div>
               </div>
 
               <div className="bg-white text-black rounded-lg p-4 border-2 border-black">
@@ -156,27 +162,30 @@ function HomePage() {
                 {topPlayers.map((player, index) => (
                   <div
                     key={player.name}
-                    className={`card p-4 flex flex-row items-center justify-between border-2 min-h-[80px] ${
+                    className={`card p-4 flex flex-row items-center justify-between border-2 min-h-20 ${
                       index === 0
                         ? "bg-black text-white border-black"
                         : "bg-white text-black border-black"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="text-2xl font-bold">
-                        #{index + 1}
-                      </div>
+                      <div className="text-2xl font-bold">#{index + 1}</div>
                       <div>
                         <div className="font-semibold">{player.name}</div>
-                        <div className={`text-xs ${index === 0 ? 'opacity-75' : 'opacity-60'}`}>
+                        <div
+                          className={`text-xs ${index === 0 ? "opacity-75" : "opacity-60"}`}
+                        >
                           {player.gamesPlayed} game
-                          {player.gamesPlayed !== 1 ? "s" : ""} • {player.averageScore.toFixed(1)} avg
+                          {player.gamesPlayed !== 1 ? "s" : ""} •{" "}
+                          {player.averageScore.toFixed(1)} avg
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {index === 0 && <Trophy className="w-5 h-5" />}
-                      <div className="text-xl font-bold">{player.totalScore}</div>
+                      <div className="text-xl font-bold">
+                        {player.totalScore}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -204,20 +213,23 @@ function HomePage() {
                   return (
                     <div
                       key={card.id}
-                      className={`card p-4 flex flex-row items-center justify-between border-2 min-h-[80px] ${
+                      className={`card p-4 flex flex-row items-center justify-between border-2 min-h-20 ${
                         isFirst
                           ? "bg-black text-white border-black"
                           : "bg-white text-black border-black"
                       }`}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="text-2xl font-bold">
-                          #{index + 1}
-                        </div>
+                        <div className="text-2xl font-bold">#{index + 1}</div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm italic line-clamp-1">"{card.text}"</div>
-                          <div className={`text-xs ${isFirst ? 'opacity-75' : 'opacity-60'}`}>
-                            Played: {card.timesPlayed} • Win Rate: {(card.winRate * 100).toFixed(0)}%
+                          <div className="text-sm italic line-clamp-1">
+                            "{card.text}"
+                          </div>
+                          <div
+                            className={`text-xs ${isFirst ? "opacity-75" : "opacity-60"}`}
+                          >
+                            Played: {card.timesPlayed} • Win Rate:{" "}
+                            {(card.winRate * 100).toFixed(0)}%
                           </div>
                         </div>
                       </div>

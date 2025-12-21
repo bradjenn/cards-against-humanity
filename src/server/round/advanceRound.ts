@@ -165,7 +165,8 @@ export const advanceRound = createServerFn({ method: "POST" })
     const noCardsLeft = remainingBlackCards === 0;
 
     // Condition 2: Mathematical victory (leader can't be caught)
-    const mathematicalVictory = leader && (leader.score > secondPlace.score + remainingBlackCards);
+    const mathematicalVictory =
+      leader && leader.score > secondPlace.score + remainingBlackCards;
 
     if (noCardsLeft || mathematicalVictory) {
       // Game is over - mark as finished

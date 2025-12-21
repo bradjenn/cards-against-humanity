@@ -1,18 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { advanceRound } from "@/server/round/advanceRound";
 
 export function useAdvanceRound() {
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  return useMutation({
-    mutationFn: ({ gameId, roundId }: { gameId: string; roundId: string }) =>
-      advanceRound({ data: { gameId, roundId } }),
-    onSuccess: (_data, variables) => {
-      // Invalidate game, round, and player hand queries
-      queryClient.invalidateQueries({ queryKey: ["game"] });
-      queryClient.invalidateQueries({ queryKey: ["round"] });
-      queryClient.invalidateQueries({ queryKey: ["playerHand"] });
-      queryClient.invalidateQueries({ queryKey: ["submissionCount"] });
+  const mutateAsync = useCallback(
+    async ({ gameId, roundId }: { gameId: string; roundId: string }) => {
+      setIsPending(true);
+      try {
+        return await advanceRound({ data: { gameId, roundId } });
+      } finally {
+        setIsPending(false);
+      }
     },
-  });
+    [],
+  );
+
+  return { mutateAsync, isPending };
 }

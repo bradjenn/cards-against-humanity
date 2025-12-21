@@ -241,7 +241,7 @@ function NewGamePage() {
           <div className="flex items-center justify-between gap-4">
             {selectedPacks.length > 0 ? (
               <div className="flex gap-3 text-center">
-                <div className="bg-white border-2 border-black rounded-lg p-3 min-w-[80px]">
+                <div className="bg-white border-2 border-black rounded-lg p-3 min-w-20">
                   <div className="font-bold text-xl">
                     {selectedPacks.length}
                   </div>
@@ -249,11 +249,11 @@ function NewGamePage() {
                     {selectedPacks.length === 1 ? "Pack" : "Packs"}
                   </div>
                 </div>
-                <div className="bg-white border-2 border-black rounded-lg p-3 min-w-[80px]">
+                <div className="bg-white border-2 border-black rounded-lg p-3 min-w-20">
                   <div className="font-bold text-xl">{whiteCardCount}</div>
                   <div className="text-xs opacity-60">White</div>
                 </div>
-                <div className="bg-black text-white border-2 border-black rounded-lg p-3 min-w-[80px]">
+                <div className="bg-black text-white border-2 border-black rounded-lg p-3 min-w-20">
                   <div className="font-bold text-xl">{blackCardCount}</div>
                   <div className="text-xs opacity-75">Black</div>
                 </div>

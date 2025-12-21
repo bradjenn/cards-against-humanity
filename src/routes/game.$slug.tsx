@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -11,7 +10,6 @@ import { useSupabase } from "@/components/SupabaseProvider";
 import { canStartGame } from "@/domain/rules";
 import { useDisconnectTracking } from "@/hooks/useDisconnectTracking";
 import { useGame } from "@/hooks/useGame";
-import { useGameRealtime } from "@/hooks/useGameRealtime";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
 import { usePlayers } from "@/hooks/usePlayers";
 import { dealLateJoinHand } from "@/server/game/dealLateJoinHand";
@@ -26,11 +24,12 @@ export const Route = createFileRoute("/game/$slug")({
 function GameLobbyPage() {
   const { slug } = Route.useParams();
   const navigate = Route.useNavigate();
-  const supabase = useSupabase() as SupabaseClient;
+  const supabase = useSupabase();
 
-  const { game: initialGame, loading } = useGame(supabase, slug);
-  const game = initialGame ? useGameRealtime(initialGame) : initialGame;
+  // Consolidated hook: fetches by slug + subscribes to realtime
+  const { game, loading } = useGame(slug);
   const [localPlayerId, setLocalPlayerId] = useLocalPlayerId();
+
   const players = usePlayers(supabase, game?.id ?? null);
 
   const [joinName, setJoinName] = useState("");

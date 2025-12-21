@@ -1,8 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { gotoAndWaitForHydration } from './helpers';
+import { expect, test } from "@playwright/test";
+import { gotoAndWaitForHydration } from "./helpers";
 
-test.describe('Join Game', () => {
-  test('should allow a second player to join an existing game', async ({ browser }) => {
+test.describe("Join Game", () => {
+  test("should allow a second player to join an existing game", async ({
+    browser,
+  }) => {
     // Create two browser contexts (two players)
     const hostContext = await browser.newContext();
     const playerContext = await browser.newContext();
@@ -12,14 +14,18 @@ test.describe('Join Game', () => {
 
     try {
       // Host creates a game
-      await gotoAndWaitForHydration(hostPage, '/new-game');
-      await hostPage.getByPlaceholder(/enter your name/i).fill('Host Player');
+      await gotoAndWaitForHydration(hostPage, "/new-game");
+      await hostPage.getByPlaceholder(/enter your name/i).fill("Host Player");
 
       // Select first pack
-      await hostPage.locator('.card').filter({ hasText: /white cards.*black cards/i }).first().click();
+      await hostPage
+        .locator(".card")
+        .filter({ hasText: /white cards.*black cards/i })
+        .first()
+        .click();
 
       // Create game
-      await hostPage.getByRole('button', { name: /create game/i }).click();
+      await hostPage.getByRole("button", { name: /create game/i }).click();
 
       // Wait for lobby page
       await expect(hostPage).toHaveURL(/\/game\/.+/, { timeout: 10000 });
@@ -31,11 +37,13 @@ test.describe('Join Game', () => {
       await playerPage.goto(gameUrl);
 
       // Should see join form
-      await expect(playerPage.getByRole('heading', { name: /join this game/i })).toBeVisible();
+      await expect(
+        playerPage.getByRole("heading", { name: /join this game/i }),
+      ).toBeVisible();
 
       // Enter name and join
-      await playerPage.getByPlaceholder(/your name/i).fill('Player 2');
-      await playerPage.getByRole('button', { name: /join game/i }).click();
+      await playerPage.getByPlaceholder(/your name/i).fill("Player 2");
+      await playerPage.getByRole("button", { name: /join game/i }).click();
 
       // Player should see the lobby
       await expect(playerPage.getByText(/player 2/i)).toBeVisible();
@@ -52,12 +60,18 @@ test.describe('Join Game', () => {
     }
   });
 
-  test('should prevent starting game with less than 3 players', async ({ page }) => {
+  test("should prevent starting game with less than 3 players", async ({
+    page,
+  }) => {
     // Create a game
-    await gotoAndWaitForHydration(page, '/new-game');
-    await page.getByPlaceholder(/enter your name/i).fill('Host Player');
-    await page.locator('.card').filter({ hasText: /white cards.*black cards/i }).first().click();
-    await page.getByRole('button', { name: /create game/i }).click();
+    await gotoAndWaitForHydration(page, "/new-game");
+    await page.getByPlaceholder(/enter your name/i).fill("Host Player");
+    await page
+      .locator(".card")
+      .filter({ hasText: /white cards.*black cards/i })
+      .first()
+      .click();
+    await page.getByRole("button", { name: /create game/i }).click();
 
     // Wait for lobby
     await expect(page).toHaveURL(/\/game\/.+/);
@@ -66,31 +80,41 @@ test.describe('Join Game', () => {
     await expect(page.getByText(/you need at least 3 players/i)).toBeVisible();
 
     // Start button should be disabled
-    await expect(page.getByRole('button', { name: /start game/i })).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: /start game/i }),
+    ).toBeDisabled();
   });
 
-  test('should copy invite link to clipboard', async ({ page, context }) => {
+  test("should copy invite link to clipboard", async ({ page, context }) => {
     // Grant clipboard permissions
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
 
     // Create a game
-    await gotoAndWaitForHydration(page, '/new-game');
-    await page.getByPlaceholder(/enter your name/i).fill('Host Player');
-    await page.locator('.card').filter({ hasText: /white cards.*black cards/i }).first().click();
-    await page.getByRole('button', { name: /create game/i }).click();
+    await gotoAndWaitForHydration(page, "/new-game");
+    await page.getByPlaceholder(/enter your name/i).fill("Host Player");
+    await page
+      .locator(".card")
+      .filter({ hasText: /white cards.*black cards/i })
+      .first()
+      .click();
+    await page.getByRole("button", { name: /create game/i }).click();
 
     // Wait for lobby
     await expect(page).toHaveURL(/\/game\/.+/);
 
     // Click copy invite link
-    await page.getByRole('button', { name: /copy invite link/i }).click();
+    await page.getByRole("button", { name: /copy invite link/i }).click();
 
     // Verify clipboard contains the game URL
-    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardText).toContain('/game/');
+    const clipboardText = await page.evaluate(() =>
+      navigator.clipboard.readText(),
+    );
+    expect(clipboardText).toContain("/game/");
   });
 
-  test('should show error when joining with empty name', async ({ browser }) => {
+  test("should show error when joining with empty name", async ({
+    browser,
+  }) => {
     const hostContext = await browser.newContext();
     const playerContext = await browser.newContext();
 
@@ -99,17 +123,21 @@ test.describe('Join Game', () => {
 
     try {
       // Host creates a game
-      await gotoAndWaitForHydration(hostPage, '/new-game');
-      await hostPage.getByPlaceholder(/enter your name/i).fill('Host Player');
-      await hostPage.locator('.card').filter({ hasText: /white cards.*black cards/i }).first().click();
-      await hostPage.getByRole('button', { name: /create game/i }).click();
+      await gotoAndWaitForHydration(hostPage, "/new-game");
+      await hostPage.getByPlaceholder(/enter your name/i).fill("Host Player");
+      await hostPage
+        .locator(".card")
+        .filter({ hasText: /white cards.*black cards/i })
+        .first()
+        .click();
+      await hostPage.getByRole("button", { name: /create game/i }).click();
       await expect(hostPage).toHaveURL(/\/game\/.+/);
 
       const gameUrl = hostPage.url();
 
       // Player tries to join without a name
       await playerPage.goto(gameUrl);
-      await playerPage.getByRole('button', { name: /join game/i }).click();
+      await playerPage.getByRole("button", { name: /join game/i }).click();
 
       // Should show error
       await expect(playerPage.getByText(/enter your name/i)).toBeVisible();

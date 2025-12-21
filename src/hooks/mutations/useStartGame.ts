@@ -1,17 +1,27 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { useCallback, useState } from "react";
 import { startGame } from "@/server/game/startGame";
 
 export function useStartGame(supabase: SupabaseClient) {
-  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
 
-  return useMutation({
-    mutationFn: ({ gameId, whiteCardsPerPlayer }: { gameId: string; whiteCardsPerPlayer: number }) =>
-      startGame(supabase, { gameId, whiteCardsPerPlayer }),
-    onSuccess: () => {
-      // Invalidate game query to get updated status
-      queryClient.invalidateQueries({ queryKey: ["game"] });
-      queryClient.invalidateQueries({ queryKey: ["playerHand"] });
+  const mutateAsync = useCallback(
+    async ({
+      gameId,
+      whiteCardsPerPlayer,
+    }: {
+      gameId: string;
+      whiteCardsPerPlayer: number;
+    }) => {
+      setIsPending(true);
+      try {
+        return await startGame(supabase, { gameId, whiteCardsPerPlayer });
+      } finally {
+        setIsPending(false);
+      }
     },
-  });
+    [supabase],
+  );
+
+  return { mutateAsync, isPending };
 }

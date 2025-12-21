@@ -1,9 +1,9 @@
-import { supabaseAdmin } from "@/server/supabaseAdmin";
 import {
   getGlobalStats,
   getTopPlayers,
   getTopWinningCards,
 } from "@/queries/statsQueries";
+import { supabaseAdmin } from "@/server/supabaseAdmin";
 
 export async function homeLoader() {
   const supabase = supabaseAdmin();

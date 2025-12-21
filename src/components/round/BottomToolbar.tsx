@@ -24,12 +24,12 @@ export function BottomToolbar({
   const isButton = content && "label" in content;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-base-100 border-t z-30">
+    <div className="fixed bottom-0 left-0 right-0 bg-base-100/30 backdrop-blur-sm border-t z-30">
       <div className="flex justify-between max-w-4xl px-8 py-3 mx-auto gap-3">
         <button
           type="button"
           onClick={gameInfoButton.onClick}
-          className="btn btn-outline rounded-sm"
+          className="btn btn-outline rounded-sm bg-white"
         >
           Game Info
           <ChevronUp />

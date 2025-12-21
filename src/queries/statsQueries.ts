@@ -72,7 +72,9 @@ export async function getTopPlayers(
   supabase: SupabaseClient,
   limit = 10,
 ): Promise<TopPlayer[]> {
-  const { data } = await supabase.rpc("get_top_players", { limit_count: limit });
+  const { data } = await supabase.rpc("get_top_players", {
+    limit_count: limit,
+  });
 
   if (!data) {
     // Fallback if RPC doesn't exist - do it manually

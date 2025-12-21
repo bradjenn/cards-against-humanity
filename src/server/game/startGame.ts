@@ -102,7 +102,4 @@ export async function startGame(
       black_deck: remainingBlackDeck.map((c) => c.id),
     })
     .eq("id", game.id);
-
-  // 9. (Optional) persist remaining decks if you want
-  // e.g. game.white_deck, game.black_deck as arrays of ids
 }

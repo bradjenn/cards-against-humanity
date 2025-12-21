@@ -3,9 +3,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
 serve(async () => {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    return new Response(
+      JSON.stringify({ error: "Missing Supabase environment variables" }),
+      { status: 500 }
+    );
+  }
+
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, // IMPORTANT: service key
+    supabaseUrl,
+    supabaseServiceKey, // IMPORTANT: service key
   );
 
   // 1. Load JSON from storage
