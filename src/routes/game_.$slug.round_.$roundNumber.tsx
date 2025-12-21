@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BlackCardBanner } from "@/components/round/BlackCardBanner";
 import { GameInfoPanel } from "@/components/round/GameInfoPanel";
 import { JudgeRoundView } from "@/components/round/JudgeRoundView";
@@ -41,18 +41,20 @@ function RoundPage() {
   const isWinner =
     localPlayerId != null && round.winning_player_id === localPlayerId;
 
-  // Auto-redirect when judge advances to next round
+  // Track previous game.round_number to detect when judge advances
+  const prevGameRoundRef = useRef(game.round_number);
+
+  // Auto-redirect only when game.round_number actually increases (judge advanced)
+  // This allows players to manually view past rounds without being redirected
   useEffect(() => {
-    if (!round.winning_player_id) return;
-    if (game.round_number > round.round_number) {
+    const prevRound = prevGameRoundRef.current;
+    prevGameRoundRef.current = game.round_number;
+
+    // Only redirect if game.round_number just increased (not on initial load of past round)
+    if (game.round_number > prevRound) {
       goToCurrentRound();
     }
-  }, [
-    game.round_number,
-    round.round_number,
-    round.winning_player_id,
-    goToCurrentRound,
-  ]);
+  }, [game.round_number, goToCurrentRound]);
 
   return (
     <div className="">

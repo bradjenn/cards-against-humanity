@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import type { Game, Round } from "@/types/db";
 
 export function PastRoundBanner({
@@ -10,18 +11,23 @@ export function PastRoundBanner({
   handleOnGoToCurrentRound: () => void;
 }) {
   return (
-    <div className="alert alert-info sticky top-0 z-20 rounded-none border-b shadow-sm">
-      <div className="flex items-center justify-between w-full max-w-4xl mx-auto">
-        <span className="font-semibold">
-          📜 Round {round.round_number} Summary (Current round:{" "}
-          {game.round_number})
-        </span>
+    <div className="sticky top-0 z-20 bg-base-200/80 backdrop-blur-sm border-b">
+      <div className="flex items-center justify-between max-w-4xl px-8 py-3 mx-auto">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-base-content/70">
+            Viewing Round {round.round_number}
+          </span>
+          <span className="text-sm text-base-content/50">
+            (Game is on round {game.round_number})
+          </span>
+        </div>
         <button
           type="button"
           onClick={handleOnGoToCurrentRound}
-          className="btn btn-sm btn-primary"
+          className="btn btn-sm btn-outline rounded-sm bg-white"
         >
-          Go to Current Round
+          Current Round
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </div>
