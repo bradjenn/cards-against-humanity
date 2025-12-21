@@ -63,5 +63,9 @@ export function useWinnerCelebration({ isWinner }: { isWinner: boolean }) {
     return () => clearTimeout(timeout);
   }, [isWinner]);
 
-  return { showWinnerBanner: showBanner, celebrationGif, gifLoaded };
+  const dismissBanner = () => {
+    setShowBanner(false);
+  };
+
+  return { showWinnerBanner: showBanner, celebrationGif, gifLoaded, dismissBanner };
 }
