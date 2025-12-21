@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { JudgePanel } from "@/components/round/JudgePanel";
@@ -16,7 +17,6 @@ interface JudgeRoundViewProps {
   onOpenGameInfo: () => void;
   onGoToCurrentRound: () => void;
   onNavigateToRound: (roundNumber: number) => void;
-  onNavigateToGameOver: () => void;
 }
 
 export function JudgeRoundView({
@@ -28,9 +28,9 @@ export function JudgeRoundView({
   onOpenGameInfo,
   onGoToCurrentRound,
   onNavigateToRound,
-  onNavigateToGameOver,
 }: JudgeRoundViewProps) {
   const [revealing, setRevealing] = useState(false);
+  const navigate = useNavigate();
 
   const pickWinnerMutation = usePickWinner();
   const advanceRoundMutation = useAdvanceRound();
@@ -39,6 +39,13 @@ export function JudgeRoundView({
   const expectedSubmitters = Math.max(players.length - 1, 0);
   const allSubmitted = submissionsCount >= expectedSubmitters;
   const isRevealing = allSubmitted && round.revealed_count < submissionsCount;
+
+  const navigateToGameOver = useCallback(() => {
+    navigate({
+      to: "/game/$slug/game-over",
+      params: { slug: game.slug },
+    });
+  }, [navigate, game.slug]);
 
   const pickWinner = useCallback(
     async (playerId: string) => {
@@ -62,14 +69,20 @@ export function JudgeRoundView({
       });
 
       if (result === null) {
-        onNavigateToGameOver();
+        navigateToGameOver();
       } else {
         onNavigateToRound(result.round_number);
       }
     } catch (err) {
       console.error("Failed to advance round", err);
     }
-  }, [advanceRoundMutation, game.id, round.id, onNavigateToGameOver, onNavigateToRound]);
+  }, [
+    advanceRoundMutation,
+    game.id,
+    round.id,
+    onNavigateToRound,
+    navigateToGameOver,
+  ]);
 
   const handleRevealNext = useCallback(async () => {
     setRevealing(true);
@@ -122,7 +135,7 @@ export function JudgeRoundView({
   };
 
   return (
-    <>
+    <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
       <JudgePanel
         round={round}
         players={players}
@@ -134,6 +147,6 @@ export function JudgeRoundView({
         gameInfoButton={{ onClick: onOpenGameInfo }}
         content={getToolbarContent()}
       />
-    </>
+    </div>
   );
 }

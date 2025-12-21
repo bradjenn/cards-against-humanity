@@ -6,13 +6,7 @@ import type { Round } from "@/types/db";
  * Unified round hook that manages round state and submission tracking.
  * Uses payload.new directly for updates instead of re-fetching.
  */
-export function useRound({
-  initialRound,
-  initialSubmissionsCount,
-}: {
-  initialRound: Round;
-  initialSubmissionsCount: number;
-}) {
+export function useRound({ initialRound }: { initialRound: Round }) {
   const supabase = useSupabase();
 
   const [round, setRound] = useState<Round>(initialRound);

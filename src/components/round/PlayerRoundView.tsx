@@ -99,7 +99,7 @@ export function PlayerRoundView({
   // Show results view when winner is picked
   if (hasWinner) {
     return (
-      <>
+      <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
         <JudgeView
           submissions={submissionsWithCards}
           players={players}
@@ -121,13 +121,13 @@ export function PlayerRoundView({
                 }
           }
         />
-      </>
+      </div>
     );
   }
 
   // Show card submission view
   return (
-    <>
+    <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
       <PlayerHand
         key={round.id}
         cards={hand}
@@ -155,6 +155,6 @@ export function PlayerRoundView({
               }
         }
       />
-    </>
+    </div>
   );
 }
