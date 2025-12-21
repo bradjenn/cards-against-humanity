@@ -14,7 +14,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GameSlugRouteImport } from './routes/game.$slug'
 import { Route as GameSlugGameOverRouteImport } from './routes/game.$slug.game-over'
 import { Route as GameSlugRoundRoundNumberRouteImport } from './routes/game_.$slug.round_.$roundNumber'
-import { Route as GameSlugRoundRoundNumberSummaryRouteImport } from './routes/game_.$slug.round_.$roundNumber_.summary'
 
 const NewGameRoute = NewGameRouteImport.update({
   id: '/new-game',
@@ -42,12 +41,6 @@ const GameSlugRoundRoundNumberRoute =
     path: '/game/$slug/round/$roundNumber',
     getParentRoute: () => rootRouteImport,
   } as any)
-const GameSlugRoundRoundNumberSummaryRoute =
-  GameSlugRoundRoundNumberSummaryRouteImport.update({
-    id: '/game_/$slug/round_/$roundNumber_/summary',
-    path: '/game/$slug/round/$roundNumber/summary',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -55,7 +48,6 @@ export interface FileRoutesByFullPath {
   '/game/$slug': typeof GameSlugRouteWithChildren
   '/game/$slug/game-over': typeof GameSlugGameOverRoute
   '/game/$slug/round/$roundNumber': typeof GameSlugRoundRoundNumberRoute
-  '/game/$slug/round/$roundNumber/summary': typeof GameSlugRoundRoundNumberSummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -63,7 +55,6 @@ export interface FileRoutesByTo {
   '/game/$slug': typeof GameSlugRouteWithChildren
   '/game/$slug/game-over': typeof GameSlugGameOverRoute
   '/game/$slug/round/$roundNumber': typeof GameSlugRoundRoundNumberRoute
-  '/game/$slug/round/$roundNumber/summary': typeof GameSlugRoundRoundNumberSummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -72,7 +63,6 @@ export interface FileRoutesById {
   '/game/$slug': typeof GameSlugRouteWithChildren
   '/game/$slug/game-over': typeof GameSlugGameOverRoute
   '/game_/$slug/round_/$roundNumber': typeof GameSlugRoundRoundNumberRoute
-  '/game_/$slug/round_/$roundNumber_/summary': typeof GameSlugRoundRoundNumberSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -82,7 +72,6 @@ export interface FileRouteTypes {
     | '/game/$slug'
     | '/game/$slug/game-over'
     | '/game/$slug/round/$roundNumber'
-    | '/game/$slug/round/$roundNumber/summary'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -90,7 +79,6 @@ export interface FileRouteTypes {
     | '/game/$slug'
     | '/game/$slug/game-over'
     | '/game/$slug/round/$roundNumber'
-    | '/game/$slug/round/$roundNumber/summary'
   id:
     | '__root__'
     | '/'
@@ -98,7 +86,6 @@ export interface FileRouteTypes {
     | '/game/$slug'
     | '/game/$slug/game-over'
     | '/game_/$slug/round_/$roundNumber'
-    | '/game_/$slug/round_/$roundNumber_/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,7 +93,6 @@ export interface RootRouteChildren {
   NewGameRoute: typeof NewGameRoute
   GameSlugRoute: typeof GameSlugRouteWithChildren
   GameSlugRoundRoundNumberRoute: typeof GameSlugRoundRoundNumberRoute
-  GameSlugRoundRoundNumberSummaryRoute: typeof GameSlugRoundRoundNumberSummaryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,13 +132,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameSlugRoundRoundNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/game_/$slug/round_/$roundNumber_/summary': {
-      id: '/game_/$slug/round_/$roundNumber_/summary'
-      path: '/game/$slug/round/$roundNumber/summary'
-      fullPath: '/game/$slug/round/$roundNumber/summary'
-      preLoaderRoute: typeof GameSlugRoundRoundNumberSummaryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -173,7 +152,6 @@ const rootRouteChildren: RootRouteChildren = {
   NewGameRoute: NewGameRoute,
   GameSlugRoute: GameSlugRouteWithChildren,
   GameSlugRoundRoundNumberRoute: GameSlugRoundRoundNumberRoute,
-  GameSlugRoundRoundNumberSummaryRoute: GameSlugRoundRoundNumberSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

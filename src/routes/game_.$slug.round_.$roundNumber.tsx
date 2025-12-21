@@ -4,10 +4,13 @@ import { BlackCard } from "@/components/round/BlackCard";
 import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { GameInfoPanel } from "@/components/round/GameInfoPanel";
 import { JudgePanel } from "@/components/round/JudgePanel";
+import { JudgeView } from "@/components/round/JudgeView";
 import { PlayerHand } from "@/components/round/PlayerHand";
 import { useSupabase } from "@/components/SupabaseProvider";
+import { useAdvanceRound } from "@/hooks/mutations/useAdvanceRound";
 import { usePickWinner } from "@/hooks/mutations/usePickWinner";
 import { useGame } from "@/hooks/useGame";
+import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
 import { usePlayerHand } from "@/hooks/usePlayerHand";
 import { usePlayers } from "@/hooks/usePlayers";
@@ -27,9 +30,6 @@ function RoundViewPage() {
   const navigate = Route.useNavigate();
   const loaderData = Route.useLoaderData();
   const supabase = useSupabase();
-
-  console.log(loaderData);
-
   const { blackCard } = loaderData;
 
   const [localPlayerId] = useLocalPlayerId();
@@ -37,6 +37,7 @@ function RoundViewPage() {
   // Consolidated hook: uses loader data as initial, subscribes to realtime
   const { game } = useGame(loaderData.game);
   const pickWinnerMutation = usePickWinner();
+  const advanceRoundMutation = useAdvanceRound();
 
   const players = usePlayers(supabase, game.id);
 
@@ -46,12 +47,21 @@ function RoundViewPage() {
   });
 
   const pick = blackCard.pick ?? 1;
+  const hasWinner = !!round.winning_player_id;
+  const isCurrentRound = game.round_number === round.round_number;
 
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [revealing, setRevealing] = useState(false);
 
   const isJudge = localPlayerId === round.judge_id;
+
+  // For showing all submissions when winner is picked
+  const { submissions, cardsByPlayer } = useJudgeSubmissions(round.id);
+  const submissionsWithCards = submissions.map((s) => ({
+    submissionId: s.player_id,
+    cards: cardsByPlayer[s.player_id] ?? [],
+  }));
 
   /* ---------------------------
    * Player submission state
@@ -96,39 +106,26 @@ function RoundViewPage() {
     }
   }, [game.status, game.slug, navigate]);
 
-  // Redirect logic: Check if viewing old round OR if winner is picked
-  useEffect(() => {
-    // If viewing an old round (game has moved on), go directly to current round
-    if (game.round_number > round.round_number) {
-      navigate({
-        to: "/game/$slug/round/$roundNumber",
-        params: {
-          slug: game.slug,
-          roundNumber: String(game.round_number),
-        },
-        replace: true,
-      });
-      return;
-    }
+  // Redirect to current round if viewing a past round
+  const goToCurrentRound = useCallback(() => {
+    navigate({
+      to: "/game/$slug/round/$roundNumber",
+      params: {
+        slug: game.slug,
+        roundNumber: String(game.round_number),
+      },
+      replace: true,
+    });
+  }, [navigate, game.slug, game.round_number]);
 
-    // If viewing current round and winner is picked, go to summary
-    if (round.winning_player_id && game.round_number === round.round_number) {
-      navigate({
-        to: "/game/$slug/round/$roundNumber/summary",
-        params: {
-          slug: game.slug,
-          roundNumber: String(round.round_number),
-        },
-        replace: true,
-      });
+  // Auto-redirect when judge advances to next round
+  useEffect(() => {
+    // Only redirect if this round is complete (has winner) and game has moved on
+    if (!round.winning_player_id) return;
+    if (game.round_number > round.round_number) {
+      goToCurrentRound();
     }
-  }, [
-    game.round_number,
-    round.round_number,
-    round.winning_player_id,
-    game.slug,
-    navigate,
-  ]);
+  }, [game.round_number, round.round_number, round.winning_player_id, goToCurrentRound]);
 
   const toggleCard = useCallback(
     (cardId: string) => {
@@ -171,22 +168,41 @@ function RoundViewPage() {
           roundId,
           winningPlayerId: playerId,
         });
-
-        // Navigate to summary immediately after picking winner
-        navigate({
-          to: "/game/$slug/round/$roundNumber/summary",
-          params: {
-            slug: game.slug,
-            roundNumber: String(round.round_number),
-          },
-          replace: true,
-        });
+        // State updates via realtime - view will show winner automatically
       } catch (err) {
         console.error("Failed to pick winner", err);
       }
     },
-    [pickWinnerMutation, navigate, game.slug, round.round_number],
+    [pickWinnerMutation],
   );
+
+  const handleAdvanceRound = useCallback(async () => {
+    try {
+      const result = await advanceRoundMutation.mutateAsync({
+        gameId: game.id,
+        roundId: round.id,
+      });
+
+      if (result === null) {
+        // Game has ended
+        navigate({
+          to: "/game/$slug/game-over",
+          params: { slug: game.slug },
+        });
+      } else {
+        // Navigate to new round
+        navigate({
+          to: "/game/$slug/round/$roundNumber",
+          params: {
+            slug: game.slug,
+            roundNumber: String(result.round_number),
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to advance round", err);
+    }
+  }, [advanceRoundMutation, game.id, game.slug, round.id, navigate]);
 
   const handleRevealNext = useCallback(async () => {
     setRevealing(true);
@@ -204,11 +220,6 @@ function RoundViewPage() {
   /* ---------------------------
    * Render
    * --------------------------- */
-
-  // Don't render anything if round has a winner - just redirect silently
-  if (round.winning_player_id) {
-    return null;
-  }
 
   return (
     <div className="">
@@ -238,6 +249,25 @@ function RoundViewPage() {
         </div>
       )}
 
+      {/* Past round banner */}
+      {!isCurrentRound && (
+        <div className="alert alert-info sticky top-0 z-20 rounded-none border-b shadow-sm">
+          <div className="flex items-center justify-between w-full max-w-4xl mx-auto">
+            <span className="font-semibold">
+              📜 Round {round.round_number} Summary (Current round:{" "}
+              {game.round_number})
+            </span>
+            <button
+              type="button"
+              onClick={goToCurrentRound}
+              className="btn btn-sm btn-primary"
+            >
+              Go to Current Round
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="sticky top-0 border-b bg-white z-10">
         <div className="flex flex-col gap-3 max-w-4xl px-8 py-4 mx-auto">
           <BlackCard card={blackCard} />
@@ -246,6 +276,7 @@ function RoundViewPage() {
 
       <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
         {isJudge ? (
+          /* ---- Judge view: reveal, pick, and see results ---- */
           <>
             <JudgePanel
               round={round}
@@ -259,26 +290,69 @@ function RoundViewPage() {
                 onClick: () => setIsInfoPanelOpen(true),
               }}
               content={
-                !allSubmitted
-                  ? {
-                      message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
-                    }
-                  : isRevealing
+                hasWinner
+                  ? !isCurrentRound
                     ? {
-                        label: revealing
-                          ? "Revealing…"
-                          : "Reveal next submission",
-                        onClick: handleRevealNext,
-                        disabled: revealing,
+                        label: "Go to Current Round",
+                        onClick: goToCurrentRound,
                         variant: "primary",
                       }
                     : {
-                        message: "Pick the winning submission above",
+                        label: advanceRoundMutation.isPending
+                          ? "Starting next round…"
+                          : "Start next round",
+                        onClick: handleAdvanceRound,
+                        disabled: advanceRoundMutation.isPending,
+                        variant: "primary",
                       }
+                  : !allSubmitted
+                    ? {
+                        message: `Waiting for players to submit (${submissionsCount}/${expectedSubmitters})`,
+                      }
+                    : isRevealing
+                      ? {
+                          label: revealing
+                            ? "Revealing…"
+                            : "Reveal next submission",
+                          onClick: handleRevealNext,
+                          disabled: revealing,
+                          variant: "primary",
+                        }
+                      : {
+                          message: "Pick the winning submission above",
+                        }
+              }
+            />
+          </>
+        ) : hasWinner ? (
+          /* ---- Non-judge viewing results ---- */
+          <>
+            <JudgeView
+              submissions={submissionsWithCards}
+              players={players}
+              winningSubmissionId={round.winning_player_id}
+              totalSubmissions={submissionsCount}
+            />
+
+            <BottomToolbar
+              gameInfoButton={{
+                onClick: () => setIsInfoPanelOpen(true),
+              }}
+              content={
+                !isCurrentRound
+                  ? {
+                      label: "Go to Current Round",
+                      onClick: goToCurrentRound,
+                      variant: "primary",
+                    }
+                  : {
+                      message: "Waiting for judge to start next round…",
+                    }
               }
             />
           </>
         ) : (
+          /* ---- Player view: submit cards ---- */
           <>
             <PlayerHand
               key={round.id}
