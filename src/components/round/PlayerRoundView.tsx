@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { BottomToolbar } from "@/components/round/BottomToolbar";
 import { JudgeView } from "@/components/round/JudgeView";
-import { PlayerHand } from "@/components/round/PlayerHand";
+import { PlayerHand, PlayerHandSkeleton } from "@/components/round/PlayerHand";
 import { useJudgeSubmissions } from "@/hooks/useJudgeSubmissions";
 import { usePlayerHand } from "@/hooks/usePlayerHand";
 import { useSubmittedCards } from "@/hooks/useSubmittedCards";
@@ -41,7 +41,7 @@ export function PlayerRoundView({
 
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
 
-  const { hand } = usePlayerHand({
+  const { hand, loading: handLoading } = usePlayerHand({
     gameId: game.id,
     playerId: localPlayerId,
     enabled: !!localPlayerId,
@@ -128,15 +128,19 @@ export function PlayerRoundView({
   // Show card submission view
   return (
     <div className="max-w-4xl mx-auto p-8 pb-24 space-y-8">
-      <PlayerHand
-        key={round.id}
-        cards={hand}
-        selectedCardIds={!hasSubmitted ? selectedCardIds : []}
-        submittedCardIds={hasSubmitted ? submittedCardIds : []}
-        onToggleCard={hasSubmitted ? undefined : toggleCard}
-        disabled={hasSubmitted}
-        playerScore={players.find((p) => p.id === localPlayerId)?.score ?? 0}
-      />
+      {handLoading ? (
+        <PlayerHandSkeleton />
+      ) : (
+        <PlayerHand
+          key={round.id}
+          cards={hand}
+          selectedCardIds={!hasSubmitted ? selectedCardIds : []}
+          submittedCardIds={hasSubmitted ? submittedCardIds : []}
+          onToggleCard={hasSubmitted ? undefined : toggleCard}
+          disabled={hasSubmitted}
+          playerScore={players.find((p) => p.id === localPlayerId)?.score ?? 0}
+        />
+      )}
 
       <BottomToolbar
         gameInfoButton={{ onClick: onOpenGameInfo }}

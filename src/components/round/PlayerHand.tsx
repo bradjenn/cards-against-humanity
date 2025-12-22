@@ -2,6 +2,45 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Card } from "@/types/db";
 
+const SKELETON_CARDS = [
+  "s1",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
+  "s6",
+  "s7",
+  "s8",
+  "s9",
+  "s10",
+] as const;
+
+export function PlayerHandSkeleton() {
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <div className="h-7 w-28 bg-base-200 rounded animate-pulse" />
+        <div className="h-7 w-20 bg-base-200 rounded animate-pulse" />
+      </div>
+
+      <div className="grid pb-24 grid-cols-2 gap-3 sm:grid-cols-4">
+        {SKELETON_CARDS.map((id) => (
+          <div
+            key={id}
+            className="bg-base-200 border-2 border-base-300 rounded-lg min-h-60 p-3 animate-pulse"
+          >
+            <div className="space-y-2">
+              <div className="h-4 bg-base-300 rounded w-full" />
+              <div className="h-4 bg-base-300 rounded w-3/4" />
+              <div className="h-4 bg-base-300 rounded w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function PlayerHand({
   cards,
   selectedCardIds = [],
