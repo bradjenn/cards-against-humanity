@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Card } from "@/types/db";
 
@@ -39,7 +40,7 @@ export function PlayerHand({
               disabled={disabled}
               onClick={() => onToggleCard?.(card.id)}
               className={cn(
-                "bg-white border-2 flex items-start rounded-lg shadow-sm min-h-60 p-3 text-sm text-left font-bold cursor-pointer transition-all",
+                "relative bg-white border-2 flex items-start rounded-lg shadow-sm min-h-60 p-3 text-sm text-left font-bold cursor-pointer transition-all",
                 isSubmitted && "border-4 border-primary bg-blue-50",
                 isSelected &&
                   !isSubmitted &&
@@ -48,6 +49,11 @@ export function PlayerHand({
                 disabled ? "cursor-not-allowed opacity-80" : "hover:shadow-md",
               )}
             >
+              {(isSelected || isSubmitted) && (
+                <span className="absolute top-2 right-2 bg-primary text-primary-content rounded-full p-1">
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                </span>
+              )}
               {card.text}
             </button>
           );
