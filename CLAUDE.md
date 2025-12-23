@@ -94,10 +94,11 @@ The `__root.tsx` file contains the layout with `<Outlet />` for nested routes.
 ### Realtime Updates
 
 Games use Supabase realtime for live updates:
-- `useGameRealtime()` - Syncs game state
-- `useRoundRealtime()` - Syncs round state and submission counts
-- `usePlayers()` - Syncs player list
-- `useDisconnectTracking()` - Tracks player connection status
+- `useGame()` - Fetches game by slug and subscribes to realtime changes
+- `useRound()` - Syncs round state and submission counts
+- `usePlayers()` - Fetches players and subscribes to changes
+- `usePresence()` - Tracks player connection status via Supabase Presence API
+- `usePlayersWithPresence()` - Combines players with live presence state
 
 ### Server Functions
 

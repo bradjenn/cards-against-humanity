@@ -10,7 +10,7 @@ import { useSupabase } from "@/components/SupabaseProvider";
 import { useGame } from "@/hooks/useGame";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
 import { useNavigationHelpers } from "@/hooks/useNavigationHelpers";
-import { usePlayers } from "@/hooks/usePlayers";
+import { usePlayersWithPresence } from "@/hooks/usePlayersWithPresence";
 import { useRound } from "@/hooks/useRound";
 import { roundLoader } from "@/loaders/roundLoader";
 
@@ -29,7 +29,7 @@ function RoundPage() {
 
   // Core game state with realtime subscriptions
   const { game } = useGame(loaderData.game);
-  const players = usePlayers(supabase, game.id);
+  const players = usePlayersWithPresence(supabase, game.id, localPlayerId);
   const { round, submissionsCount } = useRound({
     initialRound: loaderData.round,
   });

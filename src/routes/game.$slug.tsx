@@ -8,10 +8,9 @@ import { LobbyPlayers } from "@/components/game/LobbyPlayers";
 
 import { useSupabase } from "@/components/SupabaseProvider";
 import { canStartGame } from "@/domain/rules";
-import { useDisconnectTracking } from "@/hooks/useDisconnectTracking";
 import { useGame } from "@/hooks/useGame";
 import { useLocalPlayerId } from "@/hooks/useLocalPlayerId";
-import { usePlayers } from "@/hooks/usePlayers";
+import { usePlayersWithPresence } from "@/hooks/usePlayersWithPresence";
 import { dealLateJoinHand } from "@/server/game/dealLateJoinHand";
 import { joinGame } from "@/server/game/joinGame";
 import { startGame } from "@/server/game/startGame";
@@ -30,19 +29,24 @@ function GameLobbyPage() {
   const { game, loading } = useGame(slug);
   const [localPlayerId, setLocalPlayerId] = useLocalPlayerId();
 
-  const players = usePlayers(supabase, game?.id ?? null);
-
   const [joinName, setJoinName] = useState("");
   const [isEditingName, setIsEditingName] = useState(true);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
-  useDisconnectTracking(supabase, localPlayerId);
+  // Get players with live presence tracking
+  const players = usePlayersWithPresence(
+    supabase,
+    game?.id ?? null,
+    localPlayerId,
+    joinName,
+  );
 
   // Check localStorage for existing player name
   useEffect(() => {
     const playerId = window.localStorage.getItem("cah_player_id");
+
     if (playerId) {
       supabase
         .from("game_players")
